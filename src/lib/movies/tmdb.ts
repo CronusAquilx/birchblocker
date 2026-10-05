@@ -86,7 +86,7 @@ export interface TMDBPerson {
 async function fetchTMDB<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const query = new URLSearchParams({ tmdb: endpoint, ...params });
   const res = await fetch(`${RELAY}?${query}`, {
-    headers: { Authorization: `Bearer ${relayToken()}` },
+    headers: { Authorization: `Bearer ${await freshToken()}` },
   });
   if (!res.ok) throw new Error(`TMDB error: ${res.status}`);
   return res.json();
