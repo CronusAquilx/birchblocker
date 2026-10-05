@@ -64,8 +64,12 @@ function ChatWindow({ threadId, title, initial, model, level }: { threadId: stri
   });
 
   useEffect(() => {
-    const t = takePending(threadId);
-    if (t) sendMessage({ text: t.text, ...(t.files ? { files: t.files } : {}) });
+    // Deferred so a dev double-mount can't consume the first message and then drop it.
+    const timer = setTimeout(() => {
+      const t = takePending(threadId);
+      if (t) sendMessage({ text: t.text, ...(t.files ? { files: t.files } : {}) });
+    }, 0);
+    return () => clearTimeout(timer);
   }, [threadId, sendMessage]);
 
   useEffect(() => {
