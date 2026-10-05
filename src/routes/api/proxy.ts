@@ -7,7 +7,7 @@ import { authenticateRequest } from "@/lib/astra/api-user.server";
  */
 const NULL_BODY = new Set([101, 103, 204, 205, 304]);
 const DROP_REQ = new Set(["host", "connection", "content-length", "accept-encoding", "transfer-encoding", "upgrade", "keep-alive", "proxy-connection", "te", "trailer"]);
-const DROP_RES = new Set(["content-encoding", "content-length", "transfer-encoding", "connection", "keep-alive"]);
+const DROP_RES = new Set(["content-encoding", "content-length", "transfer-encoding", "connection", "keep-alive", "content-security-policy", "content-security-policy-report-only", "x-frame-options", "cross-origin-opener-policy", "cross-origin-embedder-policy", "cross-origin-resource-policy"]);
 const tokenCache = new Map<string, number>();
 
 function blockedHost(host: string) {
@@ -37,10 +37,10 @@ async function handle(request: Request) {
 
   let raw: [string, string][] = [];
   try { raw = JSON.parse(decodeURIComponent(request.headers.get("x-astra-headers") || "%5B%5D")); } catch { /* ignore */ }
-  const headers = new Headers();
+  const headers = new Headers({ "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36", "accept-language": "en-US,en;q=0.9" });
   for (const [k, v] of raw) {
     if (typeof k !== "string" || typeof v !== "string" || DROP_REQ.has(k.toLowerCase())) continue;
-    try { headers.append(k, v); } catch { /* invalid header */ }
+    try { headers.set(k, v); } catch { /* invalid header */ }
   }
   const body = method === "GET" || method === "HEAD" ? null : await request.arrayBuffer();
 

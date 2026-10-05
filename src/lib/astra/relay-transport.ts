@@ -44,11 +44,34 @@ export class AstraRelayTransport {
   }
 
   connect(
-    _url: URL, _protocols: string[], _h: RawHeaders,
-    _onopen: (p: string, e: string) => void, _onmessage: (d: unknown) => void,
+    url: URL, protocols: string[], _h: RawHeaders,
+    onopen: (p: string, e: string) => void, onmessage: (d: unknown) => void,
     onclose: (code: number, reason: string) => void, onerror: (e: string) => void,
   ): [(d: unknown) => void, (code: number, reason: string) => void] {
-    setTimeout(() => { onerror("Live connections aren't supported by the Astra relay"); onclose(1006, "unsupported"); }, 0);
-    return [() => {}, () => {}];
+    let ws: WebSocket | null = null;
+    let opened = false;
+    const pending: unknown[] = [];
+    void supabase.auth.getSession().then(({ data }) => {
+      const loc = window.location;
+      const q = new URLSearchParams({ url: url.href, protocols: (protocols ?? []).join(","), origin: new URL(url.href.replace(/^ws/, "http")).origin, token: data.session?.access_token ?? "" });
+      ws = new WebSocket(`${loc.protocol === "https:" ? "wss" : "ws"}://${loc.host}/api/proxy-ws?${q}`);
+      ws.binaryType = "arraybuffer";
+      ws.onmessage = (e) => {
+        if (!opened && typeof e.data === "string" && e.data.startsWith('{"__astra"')) {
+          opened = true;
+          let p = ""; try { p = JSON.parse(e.data).protocol ?? ""; } catch { /* ignore */ }
+          onopen(p, "");
+          for (const d of pending.splice(0)) ws!.send(d as string);
+          return;
+        }
+        onmessage(e.data);
+      };
+      ws.onclose = (e) => onclose(e.code, e.reason);
+      ws.onerror = () => onerror("Live connection failed");
+    });
+    return [
+      (d) => { if (ws && opened) ws.send(d as string); else pending.push(d); },
+      (code, reason) => { try { ws?.close(code, reason); } catch { /* ignore */ } },
+    ];
   }
 }

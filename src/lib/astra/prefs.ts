@@ -39,7 +39,7 @@ export const DEFAULT_PREFS: Prefs = {
   homeName: "birchblock",
   showClock: true,
   openLinksInNewTab: false,
-  searchEngine: "astra",
+  searchEngine: "google",
   proxyEnabled: false,
   proxyGames: false,
   wisp: "",
