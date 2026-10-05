@@ -16,6 +16,13 @@ const CAPTIONS = [
 
 export const Route = createFileRoute("/_authenticated/movies/watch/$type/$id")({
   head: () => ({ meta: [{ title: "Watch — BirchBlock Movies" }] }),
+  validateSearch: (q: Record<string, unknown>): { s?: number; e?: number; t?: number } => {
+    const num = (v: unknown) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Math.floor(Number(v)) : undefined);
+    const out: { s?: number; e?: number; t?: number } = {};
+    const s = num(q["s"]), e = num(q["e"]), t = num(q["t"]);
+    if (s) out.s = s; if (e) out.e = e; if (t) out.t = t;
+    return out;
+  },
   component: Watch,
 });
 
@@ -29,8 +36,13 @@ function Watch() {
   const setServer = (v: string) => { if (!school) setServerRaw(v); };
   const [loaded, setLoaded] = useState(false);
   const triedRef = useRef<Set<string>>(new Set());
-  const [season, setSeason] = useState(1);
-  const [episode, setEpisode] = useState(1);
+  const resume = Route.useSearch();
+  const [season, setSeason] = useState(resume.s ?? 1);
+  const [episode, setEpisode] = useState(resume.e ?? 1);
+  const [startAt, setStartAt] = useState(resume.t ?? 0);
+  const [ready, setReady] = useState(Boolean(resume.s || resume.t || type !== "tv"));
+  const rowRef = useRef<string | null>(null);
+  const timeRef = useRef(0);
   const [theater, setTheater] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [fakeFullscreen, setFakeFullscreen] = useState(false);
@@ -42,12 +54,53 @@ function Watch() {
   const tv = useTVDetail(isTV ? n : 0);
   const d = isTV ? tv.data : movie.data;
   const history = useWatchHistory();
-  const recordFn = history.record.mutate;
+
+  // Pick up where the viewer left off when no exact spot was given.
+  useEffect(() => {
+    if (ready || history.isLoading) return;
+    const last = history.data?.find((h) => h.tmdb_id === n && h.media_type === type);
+    if (last) {
+      if (last.season) setSeason(last.season);
+      if (last.episode) setEpisode(last.episode);
+      if (last.progress) setStartAt(Math.floor(last.progress));
+    }
+    setReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history.isLoading, ready]);
+
+  // Players report their playback time via postMessage; remember the latest.
+  useEffect(() => {
+    const find = (o: any, depth = 0): number | null => {
+      if (!o || typeof o !== "object" || depth > 4) return null;
+      for (const k of ["currentTime", "current_time", "time", "position", "progress"]) {
+        const v = Number(o[k]);
+        if (k in o && Number.isFinite(v) && v > 0 && (k !== "progress" || v > 1)) return typeof o[k] === "object" ? find(o[k], depth + 1) : v;
+      }
+      for (const v of Object.values(o)) { const r = find(v, depth + 1); if (r) return r; }
+      return null;
+    };
+    const onMsg = (ev: MessageEvent) => {
+      let data = ev.data;
+      if (typeof data === "string") { try { data = JSON.parse(data); } catch { return; } }
+      const t = find(data);
+      if (t && t < 60 * 60 * 6) timeRef.current = t;
+    };
+    window.addEventListener("message", onMsg);
+    const save = () => { if (rowRef.current && timeRef.current > 5) void history.saveProgress(rowRef.current, timeRef.current); };
+    const timer = setInterval(save, 10000);
+    window.addEventListener("pagehide", save);
+    return () => { save(); clearInterval(timer); window.removeEventListener("message", onMsg); window.removeEventListener("pagehide", save); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    if (d) recordFn({ tmdb_id: n, media_type: type, title: d.title || d.name || "", ...(d.poster_path ? { poster_path: d.poster_path } : {}), ...(isTV ? { season, episode } : {}) });
+    if (!d || !ready) return;
+    rowRef.current = null;
+    timeRef.current = 0;
+    history.record.mutateAsync({ tmdb_id: n, media_type: type, title: d.title || d.name || "", ...(d.poster_path ? { poster_path: d.poster_path } : {}), ...(isTV ? { season, episode } : {}), ...(startAt ? { progress: startAt } : {}) })
+      .then((rowId) => { rowRef.current = rowId; }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [d?.id, season, episode]);
+  }, [d?.id, season, episode, ready]);
 
   useEffect(() => {
     const onFullscreen = () => setFullscreen(Boolean(document.fullscreenElement));
@@ -92,7 +145,7 @@ function Watch() {
   const epCount = seasons.find((x) => x.season_number === season)?.episode_count ?? 1;
   const filteredServers = category === "all" ? STREAMING_SERVERS : STREAMING_SERVERS.filter((item) => item.category === category);
   const baseUrl = s.url(n, type, isTV ? season : undefined, isTV ? episode : undefined);
-  const directUrl = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}autoplay=1${caption !== "off" ? `&sub_lang=${caption}` : ""}`;
+  const directUrl = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}autoplay=1${caption !== "off" ? `&sub_lang=${caption}` : ""}${startAt ? `&startAt=${startAt}&progress=${startAt}&t=${startAt}&start=${startAt}` : ""}`;
   const embedUrl = directUrl;
 
   const toggleFullscreen = useCallback(async () => {
@@ -125,7 +178,7 @@ function Watch() {
       </header>
       <div className={cn("mx-auto px-3 py-3 sm:px-5", theater ? "max-w-none" : "max-w-7xl")}>
         <div ref={playerRef} className={cn("relative overflow-hidden border border-border bg-card shadow-2xl", theater ? "h-[76dvh]" : "aspect-video", fakeFullscreen && "fixed inset-0 z-50 h-dvh w-screen border-0", fullscreen ? "h-screen w-screen border-0" : "rounded-md")}>
-          <iframe key={`${server}-${season}-${episode}-${caption}`} src={embedUrl} title={`${d?.title || d?.name || "Movie"} player`} onLoad={() => setLoaded(true)} onError={tryNextServer} className="size-full border-0" allowFullScreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture" />
+          {!ready ? <div className="grid size-full place-items-center text-sm text-muted-foreground">Finding where you left off…</div> : <iframe key={`${server}-${season}-${episode}-${caption}`} src={embedUrl} title={`${d?.title || d?.name || "Movie"} player`} onLoad={() => setLoaded(true)} onError={tryNextServer} className="size-full border-0" allowFullScreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture" />}
           {fakeFullscreen && <Button type="button" variant="secondary" size="icon" onClick={() => setFakeFullscreen(false)} aria-label="Exit fullscreen" className="absolute right-3 top-3 z-10 rounded-full"><Minimize2 /></Button>}
         </div>
         {!fullscreen && !fakeFullscreen && <>
@@ -133,8 +186,8 @@ function Watch() {
             <Button type="button" variant={theater ? "default" : "secondary"} size="sm" onClick={() => setTheater((value) => !value)}><Expand />{theater ? "Exit theater" : "Theater"}</Button>
             <Button type="button" variant="secondary" size="sm" onClick={toggleFullscreen}><Maximize2 />Fullscreen</Button>
             {isTV && <>
-              <Button type="button" variant="secondary" size="sm" onClick={() => setEpisode((value) => Math.max(1, value - 1))} disabled={episode === 1}><ChevronLeft />Previous</Button>
-              <Button type="button" variant="secondary" size="sm" onClick={() => setEpisode((value) => Math.min(epCount, value + 1))} disabled={episode === epCount}>Next<ChevronRight /></Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => { setStartAt(0); setEpisode((value) => Math.max(1, value - 1)); }} disabled={episode === 1}><ChevronLeft />Previous</Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => { setStartAt(0); setEpisode((value) => Math.min(epCount, value + 1)); }} disabled={episode === epCount}>Next<ChevronRight /></Button>
             </>}
             <div className="relative">
               <Button type="button" variant="secondary" size="sm" onClick={() => setDownloadsOpen((value) => !value)}><Download />Download</Button>
@@ -156,8 +209,8 @@ function Watch() {
           </section>}
 
           {isTV && seasons.length > 0 && <div className="mt-4 grid grid-cols-2 gap-2 sm:max-w-md">
-            <Select value={String(season)} onValueChange={(value) => { setSeason(Number(value)); setEpisode(1); }}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{seasons.map((item) => <SelectItem key={item.season_number} value={String(item.season_number)}>{item.name}</SelectItem>)}</SelectContent></Select>
-            <Select value={String(episode)} onValueChange={(value) => setEpisode(Number(value))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: epCount }, (_, index) => <SelectItem key={index + 1} value={String(index + 1)}>Episode {index + 1}</SelectItem>)}</SelectContent></Select>
+            <Select value={String(season)} onValueChange={(value) => { setStartAt(0); setSeason(Number(value)); setEpisode(1); }}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{seasons.map((item) => <SelectItem key={item.season_number} value={String(item.season_number)}>{item.name}</SelectItem>)}</SelectContent></Select>
+            <Select value={String(episode)} onValueChange={(value) => { setStartAt(0); setEpisode(Number(value)); }}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Array.from({ length: epCount }, (_, index) => <SelectItem key={index + 1} value={String(index + 1)}>Episode {index + 1}</SelectItem>)}</SelectContent></Select>
           </div>}
 
           {school ? <p className="mt-5 border-t border-border pt-4 pb-10 text-sm text-muted-foreground">School mode: playing on APIPlayer, the source that works on school networks. Switch to home mode by reopening the Movies tab.</p> :
