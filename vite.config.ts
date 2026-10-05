@@ -5,11 +5,18 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { liveVoiceDev } from "./live-vite-plugin";
 
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    plugins: [liveVoiceDev()],
+    // Pre-bundle the on-device voice libraries at startup so their lazy import
+    // never triggers a mid-session re-optimize (which breaks the module fetch).
+    optimizeDeps: { include: ["@huggingface/transformers", "kokoro-js"] },
   },
 });
