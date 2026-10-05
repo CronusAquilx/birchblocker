@@ -14,10 +14,10 @@ import { devSignIn } from "@/lib/astra/dev-access.functions";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Astra" },
-      { name: "description", content: "Sign in to Astra, your private AI agent." },
-      { property: "og:title", content: "Sign in — Astra" },
-      { property: "og:description", content: "Sign in to Astra, your private AI agent." },
+      { title: "Sign in — BirchBlock" },
+      { name: "description", content: "Sign in to BirchBlock, your private AI agent." },
+      { property: "og:title", content: "Sign in — BirchBlock" },
+      { property: "og:description", content: "Sign in to BirchBlock, your private AI agent." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -70,7 +70,7 @@ function AuthPage() {
       <div className="w-full max-w-sm animate-rise">
         <div className="mb-10 text-center">
           <AstraMark className="mx-auto size-9" />
-          <h1 className="mt-5 font-display text-5xl">Astra</h1>
+          <h1 className="mt-5 font-display text-5xl">BirchBlock</h1>
           <p className="mt-2 text-sm text-muted-foreground">Your own agent. Your own model. Your data.</p>
         </div>
 

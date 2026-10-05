@@ -6,7 +6,7 @@ import { usePerson } from "@/lib/movies/hooks";
 import { img } from "@/lib/movies/tmdb";
 
 export const Route = createFileRoute("/_authenticated/movies/person/$id")({
-  head: () => ({ meta: [{ title: "Profile — Astra Movies" }] }),
+  head: () => ({ meta: [{ title: "Profile — BirchBlock Movies" }] }),
   component: PersonPage,
 });
 

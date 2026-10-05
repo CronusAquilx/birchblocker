@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/voice")({
   head: () => ({
     meta: [
-      { title: "Voice — Astra" },
-      { name: "description", content: "Talk with Astra out loud in a live voice call." },
+      { title: "Voice — BirchBlock" },
+      { name: "description", content: "Talk with BirchBlock out loud in a live voice call." },
     ],
   }),
   component: VoicePage,
@@ -46,7 +46,7 @@ function VoicePage() {
   useEffect(() => { endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" }); }, [lines]);
 
   const label = {
-    idle: lines.length ? "Call ended" : "Tap to start a call with Astra",
+    idle: lines.length ? "Call ended" : "Tap to start a call with BirchBlock",
     connecting: "Connecting…",
     connected: "Live — just talk",
     stopping: "Ending call…",
@@ -73,7 +73,7 @@ function VoicePage() {
           {v.error && <p role="alert" className="max-w-md text-center text-sm text-destructive">{v.error}</p>}
           {v.playbackBlocked && (
             <button onClick={v.resumePlayback} className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm">
-              <Volume2 className="size-4" /> Tap to hear Astra
+              <Volume2 className="size-4" /> Tap to hear BirchBlock
             </button>
           )}
           <div className="flex items-center gap-3">
@@ -99,7 +99,7 @@ function VoicePage() {
           {lines.length > 0 && (
             <div className="w-full space-y-2 rounded-lg border bg-card/60 p-3 text-sm">
               {lines.map((l, i) => (
-                <p key={i} className={l.role === "user" ? "text-muted-foreground" : ""}><span className="font-medium">{l.role === "user" ? "You" : "Astra"}:</span> {l.text}</p>
+                <p key={i} className={l.role === "user" ? "text-muted-foreground" : ""}><span className="font-medium">{l.role === "user" ? "You" : "BirchBlock"}:</span> {l.text}</p>
               ))}
             </div>
           )}

@@ -15,7 +15,7 @@ const CAPTIONS = [
 ] as const;
 
 export const Route = createFileRoute("/_authenticated/movies/watch/$type/$id")({
-  head: () => ({ meta: [{ title: "Watch — Astra Movies" }] }),
+  head: () => ({ meta: [{ title: "Watch — BirchBlock Movies" }] }),
   component: Watch,
 });
 

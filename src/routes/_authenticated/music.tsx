@@ -8,7 +8,7 @@ import { MobileMenuButton } from "@/components/astra/AppShell";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/music")({
-  head: () => ({ meta: [{ title: "Music — Astra" }, { name: "description", content: "Search songs, albums and artists in Astra." }] }),
+  head: () => ({ meta: [{ title: "Music — BirchBlock" }, { name: "description", content: "Search songs, albums and artists in BirchBlock." }] }),
   component: Music,
 });
 

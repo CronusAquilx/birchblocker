@@ -16,7 +16,7 @@ import { ACCENTS, resetPrefs, setPrefs, usePrefs, type Prefs } from "@/lib/astra
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Settings — Astra" }] }),
+  head: () => ({ meta: [{ title: "Settings — BirchBlock" }] }),
   component: SettingsPage,
 });
 
@@ -108,11 +108,11 @@ function SettingsPage() {
               <Row title="Show clock"><Switch checked={p.showClock} onCheckedChange={(showClock) => set({ showClock })} /></Row>
             </Card>
             <Card title="Browsing">
-              <Row title="Search engine" desc="Astra keeps results inside the app; others open in a new tab.">
+              <Row title="Search engine" desc="BirchBlock keeps results inside the app; others open in a new tab.">
                 <Select value={p.searchEngine} onValueChange={(v) => set({ searchEngine: v as Prefs["searchEngine"] })}>
                   <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="astra">Astra</SelectItem>
+                    <SelectItem value="astra">BirchBlock</SelectItem>
                     <SelectItem value="duckduckgo">DuckDuckGo</SelectItem>
                     <SelectItem value="google">Google</SelectItem>
                     <SelectItem value="bing">Bing</SelectItem>
@@ -152,13 +152,13 @@ function SettingsPage() {
             <Card title="Proxy">
               <Row title="Proxy websites" desc="Route the Web tab through your proxy server."><Switch checked={p.proxyEnabled} onCheckedChange={(proxyEnabled) => set({ proxyEnabled })} /></Row>
               <Row title="Proxy games" desc="Route games through Scramjet. Doesn't apply to cloud or emulated games."><Switch checked={p.proxyGames} onCheckedChange={(proxyGames) => set({ proxyGames })} /></Row>
-              <Row title="Wisp server" desc="Only used by Epoxy and Libcurl. If no Wisp server is reachable, Astra relay is used automatically.">
+              <Row title="Wisp server" desc="Only used by Epoxy and Libcurl. If no Wisp server is reachable, BirchBlock relay is used automatically.">
                 <Input className="w-56" placeholder="wss://your-wisp/" value={p.wisp} onChange={(e) => set({ wisp: e.target.value })} />
               </Row>
             </Card>
             <Card title="Transport">
               <Choice value={p.transport} onChange={(transport) => set({ transport })} options={[
-                { v: "astra", label: "Astra relay", sub: "through Astra's server · works on school wifi" },
+                { v: "astra", label: "BirchBlock relay", sub: "through BirchBlock's server · works on school wifi" },
                 { v: "epoxy", label: "Epoxy", sub: "slim TLS · needs Wisp" },
                 { v: "libcurl", label: "Libcurl", sub: "OpenSSL TLS · fallback" },
               ]} />

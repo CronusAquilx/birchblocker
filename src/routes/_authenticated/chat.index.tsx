@@ -10,7 +10,7 @@ import { MobileMenuButton } from "@/components/astra/AppShell";
 import { AstraMark } from "@/components/astra/Mark";
 
 export const Route = createFileRoute("/_authenticated/chat/")({
-  head: () => ({ meta: [{ title: "New chat — Astra" }] }),
+  head: () => ({ meta: [{ title: "New chat — BirchBlock" }] }),
   component: NewChat,
 });
 

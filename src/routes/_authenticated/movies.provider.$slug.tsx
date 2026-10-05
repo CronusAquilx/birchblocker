@@ -8,7 +8,7 @@ import { getProvider } from "@/lib/movies/providers";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/movies/provider/$slug")({
-  head: () => ({ meta: [{ title: "Channel — Astra Movies" }] }),
+  head: () => ({ meta: [{ title: "Channel — BirchBlock Movies" }] }),
   component: ProviderPage,
 });
 

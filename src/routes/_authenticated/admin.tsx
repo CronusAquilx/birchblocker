@@ -8,7 +8,7 @@ import { MobileMenuButton } from "@/components/astra/AppShell";
 import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Dev dashboard — Astra" }] }),
+  head: () => ({ meta: [{ title: "Dev dashboard — BirchBlock" }] }),
   component: Admin,
 });
 

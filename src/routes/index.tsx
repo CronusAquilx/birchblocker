@@ -5,10 +5,10 @@ import { AstraMark } from "@/components/astra/Mark";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Astra — your own AI agent" },
-      { name: "description", content: "Chat with Astra, a private AI agent running on your own model server." },
-      { property: "og:title", content: "Astra — your own AI agent" },
-      { property: "og:description", content: "Chat with Astra, a private AI agent running on your own model server." },
+      { title: "BirchBlock — your own AI agent" },
+      { name: "description", content: "Chat with BirchBlock, a private AI agent running on your own model server." },
+      { property: "og:title", content: "BirchBlock — your own AI agent" },
+      { property: "og:description", content: "Chat with BirchBlock, a private AI agent running on your own model server." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
