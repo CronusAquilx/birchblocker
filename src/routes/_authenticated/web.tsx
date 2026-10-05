@@ -91,7 +91,13 @@ function Web() {
       </form>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {tab.url ? (
-          <ProxiedFrame key={tab.url} url={tab.url} title={tab.title} prefs={prefs} />
+          <ProxiedFrame key={tab.url} url={tab.url} title={tab.title} prefs={prefs} onFail={() => {
+            if (!/^https?:\/\//i.test(tab.query) && !/^[\w-]+(\.[\w-]+)+/.test(tab.query)) {
+              const id = tab.id, q = tab.query;
+              patch(id, { url: null, loading: true });
+              void search({ data: { q } }).catch(() => ({ results: [] as Result[] })).then(({ results }) => patch(id, { results, loading: false }));
+            }
+          }} />
         ) : tab.loading ? (
           <p className="p-6 text-sm text-muted-foreground">Searching…</p>
         ) : tab.results ? (
@@ -116,7 +122,7 @@ function Web() {
   );
 }
 
-function ProxiedFrame({ url, title, prefs }: { url: string; title: string; prefs: Prefs }) {
+function ProxiedFrame({ url, title, prefs, onFail }: { url: string; title: string; prefs: Prefs; onFail: () => void }) {
   const ref = useRef<HTMLIFrameElement>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   useEffect(() => {
@@ -124,16 +130,23 @@ function ProxiedFrame({ url, title, prefs }: { url: string; title: string; prefs
     setStatus("loading");
     openProxied(ref.current!, url, prefs)
       .then(() => { if (!cancelled) setStatus("ready"); })
-      .catch(() => { if (!cancelled) setStatus("error"); });
+      .catch(() => { if (!cancelled) { setStatus("error"); onFail(); } });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url, prefs.transport, prefs.wisp]);
+  if (status === "error") {
+    return (
+      <div className="flex h-full flex-col">
+        <iframe src={url} title={title} className="w-full flex-1 bg-background" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" />
+        <p className="border-t px-3 py-1.5 text-xs text-muted-foreground">This browser can't run the proxy here, so the site is opened directly. If it stays blank, use the open-in-new-window button.</p>
+      </div>
+    );
+  }
   return (
     <div className="flex h-full flex-col">
       <iframe ref={ref} title={title} className="w-full flex-1 bg-background" />
       <p className="border-t px-3 py-1.5 text-xs text-muted-foreground">
         {status === "loading" && "Starting the proxy…"}
-        {status === "error" && "The proxy couldn't start — try reloading the page."}
         {status === "ready" && "Loaded through the BirchBlock proxy."}
       </p>
     </div>
