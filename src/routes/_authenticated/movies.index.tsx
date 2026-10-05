@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, Search } from "lucide-react";
+import { Clock, LayoutGrid, Search } from "lucide-react";
 import { MobileMenuButton } from "@/components/astra/AppShell";
 import HeroBanner from "@/components/movies/HeroBanner";
 import ContentRow from "@/components/movies/ContentRow";
@@ -9,7 +9,6 @@ import FreeContentRow from "@/components/movies/FreeContentRow";
 import MovieCard from "@/components/movies/MovieCard";
 import { useAnime, useByGenre, useKDrama, useNowPlaying, usePopular, useSearch, useTopRatedMovies, useTopRatedTV, useTrending } from "@/lib/movies/hooks";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { LayoutGrid } from "lucide-react";
 import { GENRE_LIST, YOUTUBE_MOVIES } from "@/lib/movies/tmdb";
 import { useWatchHistory } from "@/lib/movies/watch-history";
 import { useWatchlist } from "@/lib/movies/watchlist";
