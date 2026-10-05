@@ -26,6 +26,7 @@ import { Route as ApiMusicRouteImport } from './routes/api/music'
 import { Route as ApiProxyRouteImport } from './routes/api/proxy'
 import { Route as ApiSpeechRouteImport } from './routes/api/speech'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
+import { Route as ApiVoiceReplyRouteImport } from './routes/api/voice-reply'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
 import { Route as AuthenticatedMoviesIndexRouteImport } from './routes/_authenticated/movies.index'
@@ -121,6 +122,11 @@ const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
   path: '/api/transcribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVoiceReplyRoute = ApiVoiceReplyRouteImport.update({
+  id: '/api/voice-reply',
+  path: '/api/voice-reply',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   id: '/chat/',
   path: '/chat/',
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/api/proxy': typeof ApiProxyRoute
   '/api/speech': typeof ApiSpeechRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/voice-reply': typeof ApiVoiceReplyRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/scramjet/p/$': typeof ScramjetPSplatRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/api/proxy': typeof ApiProxyRoute
   '/api/speech': typeof ApiSpeechRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/voice-reply': typeof ApiVoiceReplyRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/scramjet/p/$': typeof ScramjetPSplatRoute
   '/chat': typeof AuthenticatedChatIndexRoute
@@ -254,6 +262,7 @@ export interface FileRoutesById {
   '/api/proxy': typeof ApiProxyRoute
   '/api/speech': typeof ApiSpeechRoute
   '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/voice-reply': typeof ApiVoiceReplyRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
   '/scramjet/p/$': typeof ScramjetPSplatRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
@@ -284,6 +293,7 @@ export interface FileRouteTypes {
     | '/api/proxy'
     | '/api/speech'
     | '/api/transcribe'
+    | '/api/voice-reply'
     | '/chat/$threadId'
     | '/scramjet/p/$'
     | '/chat/'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/api/proxy'
     | '/api/speech'
     | '/api/transcribe'
+    | '/api/voice-reply'
     | '/chat/$threadId'
     | '/scramjet/p/$'
     | '/chat'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/api/proxy'
     | '/api/speech'
     | '/api/transcribe'
+    | '/api/voice-reply'
     | '/_authenticated/chat/$threadId'
     | '/scramjet/p/$'
     | '/_authenticated/chat/'
@@ -363,6 +375,7 @@ export interface RootRouteChildren {
   ApiProxyRoute: typeof ApiProxyRoute
   ApiSpeechRoute: typeof ApiSpeechRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
+  ApiVoiceReplyRoute: typeof ApiVoiceReplyRoute
   ScramjetPSplatRoute: typeof ScramjetPSplatRoute
   ApiPublicGamesSplatRoute: typeof ApiPublicGamesSplatRoute
 }
@@ -486,6 +499,13 @@ declare module '@tanstack/react-router' {
       path: '/api/transcribe'
       fullPath: '/api/transcribe'
       preLoaderRoute: typeof ApiTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/voice-reply': {
+      id: '/api/voice-reply'
+      path: '/api/voice-reply'
+      fullPath: '/api/voice-reply'
+      preLoaderRoute: typeof ApiVoiceReplyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/chat/': {
@@ -612,6 +632,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProxyRoute: ApiProxyRoute,
   ApiSpeechRoute: ApiSpeechRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
+  ApiVoiceReplyRoute: ApiVoiceReplyRoute,
   ScramjetPSplatRoute: ScramjetPSplatRoute,
   ApiPublicGamesSplatRoute: ApiPublicGamesSplatRoute,
 }
