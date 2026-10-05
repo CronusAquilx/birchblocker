@@ -49,6 +49,8 @@ export interface TMDBMovie {
   genre_ids: number[];
   media_type?: string;
   popularity: number;
+  /** Set on "Continue watching" items: where the viewer left off. */
+  resume?: { s?: number; e?: number; t?: number };
   original_language?: string;
   adult?: boolean;
 }

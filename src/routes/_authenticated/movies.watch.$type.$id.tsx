@@ -40,7 +40,7 @@ function Watch() {
   const [season, setSeason] = useState(resume.s ?? 1);
   const [episode, setEpisode] = useState(resume.e ?? 1);
   const [startAt, setStartAt] = useState(resume.t ?? 0);
-  const [ready, setReady] = useState(Boolean(resume.s || resume.t || type !== "tv"));
+  const [ready, setReady] = useState(Boolean(resume.s || resume.t));
   const rowRef = useRef<string | null>(null);
   const timeRef = useRef(0);
   const [theater, setTheater] = useState(false);

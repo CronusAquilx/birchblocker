@@ -46,7 +46,13 @@ export default function MovieCard({ movie, index = 0, showRank, compact }: Props
 
   return (
     <div className={`group relative shrink-0 snap-start ${compact ? 'w-[130px]' : 'w-[42vw] max-w-[190px] min-w-[154px] sm:w-[180px] lg:w-[190px]'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-      <Link to="/movies/title/$type/$id" params={{ type, id: String(movie.id) }}>
+      {movie.resume && (
+        <Link to="/movies/watch/$type/$id" params={{ type, id: String(movie.id) }} search={movie.resume}
+          className="absolute left-1.5 top-1.5 z-10 rounded bg-background/85 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur">
+          ▶ {movie.resume.s ? `S${movie.resume.s} E${movie.resume.e ?? 1}` : "Resume"}{movie.resume.t ? ` · ${Math.floor(movie.resume.t / 60)}:${String(movie.resume.t % 60).padStart(2, "0")}` : ""}
+        </Link>
+      )}
+      <Link {...(movie.resume ? { to: "/movies/watch/$type/$id" as const, search: movie.resume } : { to: "/movies/title/$type/$id" as const })} params={{ type, id: String(movie.id) }}>
         <div className="relative aspect-[2/3] overflow-hidden rounded-md border border-border bg-card shadow-lg transition-all duration-300 group-hover:-translate-y-1 group-hover:border-star/40">
           <img
             src={img(movie.poster_path)}
