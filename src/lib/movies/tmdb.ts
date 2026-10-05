@@ -72,6 +72,7 @@ export interface TMDBDetail extends TMDBMovie {
   videos?: { results: { key: string; type: string; site: string }[] };
   similar?: { results: TMDBMovie[] };
   recommendations?: { results: TMDBMovie[] };
+  external_ids?: { imdb_id?: string | null };
 }
 
 export interface TMDBPerson {
@@ -117,10 +118,10 @@ export const tmdb = {
     fetchTMDB<{ results: TMDBMovie[] }>('/discover/tv', params).then(r => r.results),
 
   movieDetail: (id: number) =>
-    fetchTMDB<TMDBDetail>(`/movie/${id}`, { append_to_response: 'credits,videos,similar,recommendations' }),
+    fetchTMDB<TMDBDetail>(`/movie/${id}`, { append_to_response: 'credits,videos,similar,recommendations,external_ids' }),
 
   tvDetail: (id: number) =>
-    fetchTMDB<TMDBDetail>(`/tv/${id}`, { append_to_response: 'credits,videos,similar,recommendations' }),
+    fetchTMDB<TMDBDetail>(`/tv/${id}`, { append_to_response: 'credits,videos,similar,recommendations,external_ids' }),
 
   person: (id: number) =>
     fetchTMDB<TMDBPerson>(`/person/${id}`, { append_to_response: 'combined_credits' }),

@@ -9,6 +9,8 @@ import { createClient } from "@supabase/supabase-js";
 const TMDB_API_KEY = "0ea74aa80d71c4dc484c0a58f26ea7b8";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p";
+const CAPTION_CATALOG = "https://opensubtitles-v3.strem.io";
+const CAPTION_HOSTS = new Set(["subs5.strem.io", "subs6.strem.io", "subs7.strem.io", "subs8.strem.io"]);
 
 const DROP_RES = new Set([
   "content-encoding", "content-length", "transfer-encoding", "connection",
@@ -86,6 +88,60 @@ async function handle({ request }: { request: Request }) {
   const token = url.searchParams.get("token") || "";
   const self = `${url.origin}/api/movies`;
 
+  // --- Subtitle catalog and files ---
+  const captionImdb = url.searchParams.get("captions");
+  if (captionImdb) {
+    const type = url.searchParams.get("type") === "tv" ? "series" : "movie";
+    const season = Number(url.searchParams.get("season") || 0);
+    const episode = Number(url.searchParams.get("episode") || 0);
+    if (!/^tt\d{5,12}$/.test(captionImdb)) return new Response("Bad title id", { status: 400 });
+    if (type === "series" && (!Number.isInteger(season) || !Number.isInteger(episode) || season < 1 || episode < 1 || season > 100 || episode > 1000)) {
+      return new Response("Bad episode", { status: 400 });
+    }
+    const catalogId = type === "series" ? `${captionImdb}:${season}:${episode}` : captionImdb;
+    const upstream = await fetch(`${CAPTION_CATALOG}/subtitles/${type}/${catalogId}.json`, {
+      headers: { "user-agent": "BirchBlock/1.0" },
+    });
+    if (!upstream.ok) return Response.json({ subtitles: [] }, { status: upstream.status });
+    const payload = await upstream.json() as { subtitles?: Array<Record<string, unknown>> };
+    const subtitles = (payload.subtitles ?? []).slice(0, 250).flatMap((item) => {
+      const rawUrl = typeof item["url"] === "string" ? item["url"] : "";
+      const language = typeof item["lang"] === "string" ? item["lang"] : "";
+      const id = typeof item["id"] === "string" ? item["id"] : String(item["id"] ?? "");
+      if (!rawUrl || !language || !id) return [];
+      try {
+        const captionUrl = new URL(rawUrl);
+        if (captionUrl.protocol !== "https:" || !CAPTION_HOSTS.has(captionUrl.hostname)) return [];
+      } catch {
+        return [];
+      }
+      return [{
+        id,
+        language,
+        label: language,
+        fileName: typeof item["subtitleFileName"] === "string" ? item["subtitleFileName"] : undefined,
+        url: `${self}?caption=${encodeURIComponent(rawUrl)}&token=${encodeURIComponent(token)}`,
+      }];
+    });
+    return Response.json({ subtitles }, { headers: { "cache-control": "private, max-age=1800" } });
+  }
+
+  const captionFile = url.searchParams.get("caption");
+  if (captionFile) {
+    let target: URL;
+    try {
+      target = new URL(captionFile);
+    } catch {
+      return new Response("Bad caption url", { status: 400 });
+    }
+    if (target.protocol !== "https:" || !CAPTION_HOSTS.has(target.hostname)) return new Response("Blocked caption host", { status: 400 });
+    const upstream = await fetch(target.toString(), { redirect: "follow", headers: { "user-agent": "BirchBlock/1.0" } });
+    if (!upstream.ok) return new Response("Caption unavailable", { status: upstream.status });
+    return new Response(upstream.body, {
+      headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "private, max-age=86400" },
+    });
+  }
+
   // --- TMDB API data ---
   const tmdbPath = url.searchParams.get("tmdb");
   if (tmdbPath) {
@@ -154,7 +210,7 @@ async function handle({ request }: { request: Request }) {
     return new Response(upstream.body, { status: upstream.status, headers });
   }
 
-  return new Response("Missing tmdb, img, or embed parameter", { status: 400 });
+  return new Response("Missing tmdb, img, caption, captions, or embed parameter", { status: 400 });
 }
 
 export const Route = createFileRoute("/api/movies")({
