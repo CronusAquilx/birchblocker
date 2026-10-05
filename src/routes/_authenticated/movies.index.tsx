@@ -7,8 +7,9 @@ import ContentRow from "@/components/movies/ContentRow";
 import ChannelsRow from "@/components/movies/ChannelsRow";
 import FreeContentRow from "@/components/movies/FreeContentRow";
 import MovieCard from "@/components/movies/MovieCard";
-import { useAnime, useKDrama, useNowPlaying, usePopular, useSearch, useTopRatedMovies, useTopRatedTV, useTrending } from "@/lib/movies/hooks";
-import { YOUTUBE_MOVIES } from "@/lib/movies/tmdb";
+import { useAnime, useByGenre, useKDrama, useNowPlaying, usePopular, useSearch, useTopRatedMovies, useTopRatedTV, useTrending } from "@/lib/movies/hooks";
+import { GENRE_LIST, YOUTUBE_MOVIES } from "@/lib/movies/tmdb";
+import { useWatchHistory } from "@/lib/movies/watch-history";
 import { useWatchlist } from "@/lib/movies/watchlist";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ function WatchModePrompt() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">Where are you watching?</DialogTitle>
-          <DialogDescription>At school, Astra only uses the source that isn't blocked on school networks.</DialogDescription>
+          <DialogDescription>At school, BirchBlock only uses the source that isn't blocked on school networks.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-2">
           <Button size="lg" variant="secondary" onClick={() => pick("home")}>At home</Button>
@@ -41,7 +42,7 @@ function WatchModePrompt() {
 const RECENT_KEY = "astra-movie-searches";
 
 export const Route = createFileRoute("/_authenticated/movies/")({
-  head: () => ({ meta: [{ title: "Movies — Astra" }] }),
+  head: () => ({ meta: [{ title: "Movies — BirchBlock" }] }),
   component: Movies,
 });
 
@@ -57,6 +58,18 @@ function Movies() {
   const kdrama = useKDrama();
   const results = useSearch(q.trim());
   const watchlist = useWatchlist();
+  const history = useWatchHistory();
+  const [genre, setGenre] = useState<string | null>(null);
+  const genreResults = useByGenre(genre ?? "");
+  const continueWatching = (() => {
+    const seen = new Set<string>();
+    return (history.data ?? []).filter((h) => {
+      const k = `${h.media_type}-${h.tmdb_id}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    }).map((h) => ({ id: h.tmdb_id, title: h.title ?? "", poster_path: h.poster_path, backdrop_path: null, overview: "", vote_average: 0, genre_ids: [], popularity: 0, media_type: h.media_type }));
+  })();
 
   useEffect(() => {
     try {
@@ -89,7 +102,29 @@ function Movies() {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search movies & shows" className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
         </div>
       </header>
-      {q.trim().length > 1 ? (
+      <div className="flex items-center gap-1.5 overflow-x-auto px-4 pt-3 pb-1 sm:px-6">
+        <button
+          onClick={() => setGenre(null)}
+          className={`shrink-0 rounded-full border px-3 py-1 text-xs ${genre === null ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+        >
+          All
+        </button>
+        {GENRE_LIST.map((g) => (
+          <button
+            key={g.id}
+            onClick={() => { setQ(""); setGenre(genre === g.id ? null : g.id); }}
+            className={`shrink-0 rounded-full border px-3 py-1 text-xs ${genre === g.id ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+          >
+            {g.name}
+          </button>
+        ))}
+      </div>
+      {genre && q.trim().length <= 1 ? (
+        <div className="grid grid-cols-3 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-6">
+          {genreResults.isLoading && <p className="col-span-full text-sm text-muted-foreground">Loading…</p>}
+          {genreResults.data?.map((m) => <MovieCard key={`genre-${m.id}`} movie={{ ...m, media_type: "movie" }} compact />)}
+        </div>
+      ) : q.trim().length > 1 ? (
         <div className="grid grid-cols-3 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-6">
           {results.data?.map((m) => <MovieCard key={`${m.media_type}-${m.id}`} movie={m} compact />)}
           {results.data?.length === 0 && <p className="col-span-full text-sm text-muted-foreground">No results.</p>}
@@ -113,6 +148,7 @@ function Movies() {
           <HeroBanner movies={trending.data} />
           <div className="relative z-10 -mt-12 space-y-1 pb-10 sm:-mt-16">
             <ChannelsRow />
+            {continueWatching.length > 0 && <ContentRow title="Continue watching" movies={continueWatching} />}
             {!!watchlist.data?.length && (
               <ContentRow title="My List" movies={watchlist.data.map((w) => ({ id: w.tmdb_id, title: w.title ?? "", poster_path: w.poster_path, backdrop_path: null, overview: "", vote_average: 0, genre_ids: [], popularity: 0, media_type: w.media_type }))} />
             )}
