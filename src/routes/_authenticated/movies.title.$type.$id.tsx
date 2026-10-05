@@ -7,7 +7,7 @@ import { backdrop, img } from "@/lib/movies/tmdb";
 import { useWatchlist } from "@/lib/movies/watchlist";
 
 export const Route = createFileRoute("/_authenticated/movies/title/$type/$id")({
-  head: () => ({ meta: [{ title: "Details — Astra Movies" }] }),
+  head: () => ({ meta: [{ title: "Details — BirchBlock Movies" }] }),
   component: Detail,
 });
 

@@ -9,7 +9,7 @@ import { MobileMenuButton } from "@/components/astra/AppShell";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/web")({
-  head: () => ({ meta: [{ title: "Web — Astra" }] }),
+  head: () => ({ meta: [{ title: "Web — BirchBlock" }] }),
   validateSearch: (s: Record<string, unknown>): { q?: string } => (typeof s["q"] === "string" && s["q"] ? { q: s["q"] } : {}),
   component: Web,
 });
@@ -139,7 +139,7 @@ function ProxiedFrame({ url, title, prefs }: { url: string; title: string; prefs
       <p className="border-t px-3 py-1.5 text-xs text-muted-foreground">
         {status === "loading" && "Starting the proxy…"}
         {status === "error" && "The proxy couldn't start — try reloading the page."}
-        {status === "ready" && "Loaded through the Astra proxy."}
+        {status === "ready" && "Loaded through the BirchBlock proxy."}
       </p>
     </div>
   );

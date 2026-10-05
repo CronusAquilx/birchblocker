@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { think } from "@/lib/astra/mini-brain";
 
 /**
- * Free voice mode: Whisper (speech → text), Astra Mini (thinking) and Kokoro
+ * Free voice mode: Whisper (speech → text), BirchBlock Mini (thinking) and Kokoro
  * (text → natural speech) all run in the browser. No credits, no outside AI.
  */
 export type VoiceStatus = "idle" | "loading" | "listening" | "thinking" | "speaking" | "error";
@@ -161,7 +161,7 @@ export function useFreeVoice(voiceName = "af_heart") {
       await loop(m);
     } catch (e) {
       console.error(e);
-      setError(e instanceof DOMException && e.name === "NotAllowedError" ? "Astra needs microphone access to hear you." : "Voice couldn't start. Check your connection and try again.");
+      setError(e instanceof DOMException && e.name === "NotAllowedError" ? "BirchBlock needs microphone access to hear you." : "Voice couldn't start. Check your connection and try again.");
       stop();
       setStatus("error");
     }

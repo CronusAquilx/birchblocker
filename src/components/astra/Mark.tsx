@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-/** Astra's mark: a four-point star. */
+/** BirchBlock's mark: a four-point star. */
 export function AstraMark({ className, pulsing }: { className?: string; pulsing?: boolean }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden className={cn("text-star", pulsing && "animate-twinkle", className)}>
@@ -13,7 +13,7 @@ export function AstraWordmark({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <AstraMark className="size-4" />
-      <span className="font-display text-xl leading-none">Astra</span>
+      <span className="font-display text-xl leading-none">BirchBlock</span>
     </span>
   );
 }

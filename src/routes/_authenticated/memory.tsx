@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/_authenticated/memory")({
-  head: () => ({ meta: [{ title: "Memory — Astra" }] }),
+  head: () => ({ meta: [{ title: "Memory — BirchBlock" }] }),
   component: MemoryPage,
 });
 
@@ -45,7 +45,7 @@ function MemoryPage() {
       <header className="flex h-12 items-center px-3 md:hidden"><MobileMenuButton /></header>
       <div className="mx-auto w-full max-w-2xl px-4 py-8 md:py-14">
         <h1 className="font-display text-4xl">Memory</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Facts Astra keeps in mind in every chat. Only you can see them.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Facts BirchBlock keeps in mind in every chat. Only you can see them.</p>
         <form onSubmit={add} className="mt-6 flex gap-2">
           <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="e.g. I prefer TypeScript examples" />
           <Button type="submit">Remember</Button>

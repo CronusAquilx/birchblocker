@@ -286,7 +286,7 @@ export function Thinking() {
   return (
     <div className="flex items-center gap-3">
       <AstraMark className="size-4" pulsing />
-      <span className="text-sm text-muted-foreground">Astra is thinking…</span>
+      <span className="text-sm text-muted-foreground">BirchBlock is thinking…</span>
     </div>
   );
 }

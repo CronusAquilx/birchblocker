@@ -22,7 +22,7 @@ function NotFoundComponent() {
         <h1 className="font-display text-7xl text-foreground">404</h1>
         <p className="mt-3 text-sm text-muted-foreground">This page drifted out of orbit.</p>
         <Link to="/" className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-          Back to Astra
+          Back to BirchBlock
         </Link>
       </div>
     </div>
@@ -66,9 +66,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Astra — your own AI agent" },
-      { name: "description", content: "Astra is a private AI agent that runs on your own model server." },
-      { property: "og:title", content: "Astra — your own AI agent" },
+      { title: "BirchBlock — your own AI agent" },
+      { name: "description", content: "BirchBlock is a private AI agent that runs on your own model server." },
+      { property: "og:title", content: "BirchBlock — your own AI agent" },
       { property: "og:description", content: "A private AI agent that runs on your own model server." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

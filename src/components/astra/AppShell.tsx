@@ -147,7 +147,7 @@ function TopBar() {
         }}
       >
         <Lock className="size-3 text-success" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`astra:/${path}`} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-foreground/80" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`birchblock:/${path}`} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-foreground/80" />
       </form>
       <button className={btn} aria-label="Fullscreen" onClick={() => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen())}><Maximize className="size-4" /></button>
     </div>

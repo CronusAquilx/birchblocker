@@ -6,7 +6,7 @@ import { usePrefs } from "@/lib/astra/prefs";
 import { openProxied } from "@/lib/astra/proxy";
 
 export const Route = createFileRoute("/_authenticated/games")({
-  head: () => ({ meta: [{ title: "Games — Astra" }] }),
+  head: () => ({ meta: [{ title: "Games — BirchBlock" }] }),
   component: Games,
 });
 
@@ -57,7 +57,7 @@ function Games() {
             </button>
             <button onClick={() => choose("sites")} className="flex flex-col items-center gap-2 rounded-xl border p-6 hover:bg-accent">
               <Globe className="size-8" /><span className="font-medium">View actual website</span>
-              <span className="text-xs text-muted-foreground">Browse the original game sites inside Astra</span>
+              <span className="text-xs text-muted-foreground">Browse the original game sites inside BirchBlock</span>
             </button>
           </div>
         </div>
