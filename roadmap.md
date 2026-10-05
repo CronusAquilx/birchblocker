@@ -5,3 +5,4 @@
 - [x] Movies section (StreamVerse) imported
 - [x] Built-in hosted model fallback so Astra works without the user's own server
 - [ ] Phase 3 — image generation in chat (in progress), voice (mic input + spoken replies), Movies extras (recent searches, share links, trending feed, profile pages), admin live stats + limits, security pass
+- [ ] Movie captions — synced multi-language tracks with size, position, background, and mobile/desktop fullscreen controls
