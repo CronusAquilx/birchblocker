@@ -15,6 +15,10 @@ const SAFE = /^[A-Za-z0-9._-]{1,80}$/;
 // throws. This shim gives them an in-memory store so they still boot.
 const SHIM = `<script>(function(){function m(){var d={};return{getItem:function(k){return k in d?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
 ["localStorage","sessionStorage"].forEach(function(n){try{window[n].length}catch(e){try{Object.defineProperty(window,n,{value:m(),configurable:true})}catch(_){}}});
+function cs(){var s={};return{open:function(n){s[n]=s[n]||new Map();var m=s[n];return Promise.resolve({match:function(r){var v=m.get(String(r.url||r));return Promise.resolve(v?v.clone():undefined)},put:function(r,v){m.set(String(r.url||r),v);return Promise.resolve()},add:function(){return Promise.resolve()},addAll:function(){return Promise.resolve()},delete:function(r){return Promise.resolve(m.delete(String(r.url||r)))},keys:function(){return Promise.resolve([])}})},has:function(n){return Promise.resolve(n in s)},delete:function(n){var h=n in s;delete s[n];return Promise.resolve(h)},keys:function(){return Promise.resolve(Object.keys(s))},match:function(){return Promise.resolve(undefined)}}}
+try{window.caches}catch(e){try{Object.defineProperty(window,"caches",{value:cs(),configurable:true})}catch(_){}}
+try{window.indexedDB}catch(e){try{Object.defineProperty(window,"indexedDB",{value:undefined,configurable:true})}catch(_){}}
+try{navigator.serviceWorker}catch(e){try{Object.defineProperty(navigator,"serviceWorker",{value:undefined,configurable:true})}catch(_){}}
 try{document.cookie}catch(e){Object.defineProperty(document,"cookie",{get:function(){return""},set:function(){},configurable:true})}
 window.open=function(u){if(u){try{location.href=u}catch(e){}}return null};})();</script>`;
 
