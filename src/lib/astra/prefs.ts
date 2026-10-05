@@ -2,7 +2,9 @@ import { useSyncExternalStore } from "react";
 
 export type Prefs = {
   layout: "classic" | "launcher";
-  accent: "star" | "rose" | "ember" | "mint" | "sky" | "violet";
+  accent: "star" | "rose" | "ember" | "mint" | "sky" | "violet" | "lime" | "gold" | "coral" | "aqua";
+  palette: "default" | "midnight" | "forest" | "ocean" | "sunset" | "mono" | "candy" | "dracula";
+  v?: number;
   density: "compact" | "comfortable";
   fontScale: number;
   radius: number;
@@ -29,6 +31,7 @@ export type Prefs = {
 export const DEFAULT_PREFS: Prefs = {
   layout: "classic",
   accent: "star",
+  palette: "default",
   density: "comfortable",
   fontScale: 100,
   radius: 0.3,
@@ -59,6 +62,21 @@ export const ACCENTS: Record<Prefs["accent"], string> = {
   mint: "oklch(0.78 0.14 160)",
   sky: "oklch(0.74 0.13 235)",
   violet: "oklch(0.68 0.17 295)",
+  lime: "oklch(0.85 0.19 130)",
+  gold: "oklch(0.83 0.15 90)",
+  coral: "oklch(0.72 0.15 30)",
+  aqua: "oklch(0.82 0.12 195)",
+};
+
+export const PALETTES: Record<Prefs["palette"], { name: string; swatch: string[] }> = {
+  default: { name: "Default", swatch: ["#14161c", "#e9d8a6"] },
+  midnight: { name: "Midnight", swatch: ["#0b1026", "#7aa2ff"] },
+  forest: { name: "Forest", swatch: ["#0f1a14", "#7bd88f"] },
+  ocean: { name: "Ocean", swatch: ["#071a24", "#4fd1e8"] },
+  sunset: { name: "Sunset", swatch: ["#1f1016", "#ff9a6b"] },
+  mono: { name: "Mono", swatch: ["#111111", "#f2f2f2"] },
+  candy: { name: "Candy", swatch: ["#fff0f6", "#e64e9b"] },
+  dracula: { name: "Dracula", swatch: ["#1e1b2e", "#c49bff"] },
 };
 
 const KEY = "astra-prefs";
@@ -71,6 +89,7 @@ function load() {
   loaded = true;
   try {
     state = { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(KEY) || "{}") };
+    if (!state.v) { if (state.searchEngine === "astra") state.searchEngine = "google"; state.v = 1; }
   } catch { /* ignore */ }
   apply();
 }
@@ -89,6 +108,7 @@ function apply() {
     r.style.removeProperty("--ring");
   }
   r.dataset["bg"] = state.background;
+  if (state.palette === "default") delete r.dataset["theme"]; else r.dataset["theme"] = state.palette;
   r.dataset["density"] = state.density;
   r.classList.toggle("reduce-motion", state.reduceMotion);
   document.title = state.tabCloak ? state.cloakTitle : document.title;

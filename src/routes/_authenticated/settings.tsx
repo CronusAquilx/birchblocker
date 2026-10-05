@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ACCENTS, resetPrefs, setPrefs, usePrefs, type Prefs } from "@/lib/astra/prefs";
+import { ACCENTS, PALETTES, resetPrefs, setPrefs, usePrefs, type Prefs } from "@/lib/astra/prefs";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -222,8 +222,18 @@ function Appearance({ p, set }: { p: Prefs; set: (x: Partial<Prefs>) => void }) 
             ))}
           </div>
         </Row>
+        <Row title="Color theme">
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(PALETTES) as Prefs["palette"][]).map((k) => (
+              <button key={k} onClick={() => set({ palette: k, accent: "star" })} className={cn("flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-sm", p.palette === k ? "border-star bg-accent" : "hover:bg-accent/50")}>
+                <span className="flex">{PALETTES[k].swatch.map((c) => <span key={c} className="-ml-1 size-4 rounded-full border first:ml-0" style={{ background: c }} />)}</span>
+                {PALETTES[k].name}
+              </button>
+            ))}
+          </div>
+        </Row>
         <Row title="Accent color">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {(Object.keys(ACCENTS) as Prefs["accent"][]).map((a) => (
               <button
                 key={a}
