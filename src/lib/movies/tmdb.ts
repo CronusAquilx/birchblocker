@@ -1,15 +1,29 @@
+import { supabase } from '@/integrations/supabase/client';
+
 // All movie traffic (TMDB data, images, embed players) goes through Astra's
 // own relay at /api/movies, so the browser only talks to Astra's domain.
 const RELAY = '/api/movies';
 
-/** Access token for relay auth, read straight from the stored session. */
-export const relayToken = (): string => {
-  try {
-    const raw = localStorage.getItem(`sb-${import.meta.env['VITE_SUPABASE_PROJECT_ID']}-auth-token`);
-    return raw ? (JSON.parse(raw)?.access_token ?? '') : '';
-  } catch {
-    return '';
-  }
+// The session isn't always in localStorage (the editor preview brokers it
+// elsewhere), so track the token from the auth client itself.
+let cachedToken = '';
+if (typeof window !== 'undefined') {
+  supabase.auth.getSession().then(({ data }) => {
+    cachedToken = data.session?.access_token ?? '';
+  });
+  supabase.auth.onAuthStateChange((_e, session) => {
+    cachedToken = session?.access_token ?? '';
+  });
+}
+
+/** Access token for relay auth (sync, for image/iframe URLs). */
+export const relayToken = (): string => cachedToken;
+
+/** Fresh access token for fetch calls. */
+const freshToken = async (): Promise<string> => {
+  const { data } = await supabase.auth.getSession();
+  cachedToken = data.session?.access_token ?? cachedToken;
+  return cachedToken;
 };
 
 export const img = (path: string | null, size = 'w500') =>
@@ -72,7 +86,7 @@ export interface TMDBPerson {
 async function fetchTMDB<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const query = new URLSearchParams({ tmdb: endpoint, ...params });
   const res = await fetch(`${RELAY}?${query}`, {
-    headers: { Authorization: `Bearer ${relayToken()}` },
+    headers: { Authorization: `Bearer ${await freshToken()}` },
   });
   if (!res.ok) throw new Error(`TMDB error: ${res.status}`);
   return res.json();
