@@ -20,7 +20,7 @@ if (typeof window !== 'undefined') {
 export const relayToken = (): string => cachedToken;
 
 /** Fresh access token for fetch calls. */
-const freshToken = async (): Promise<string> => {
+export const movieAccessToken = async (): Promise<string> => {
   const { data } = await supabase.auth.getSession();
   cachedToken = data.session?.access_token ?? cachedToken;
   return cachedToken;
@@ -89,7 +89,7 @@ export interface TMDBPerson {
 async function fetchTMDB<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const query = new URLSearchParams({ tmdb: endpoint, ...params });
   const res = await fetch(`${RELAY}?${query}`, {
-    headers: { Authorization: `Bearer ${await freshToken()}` },
+    headers: { Authorization: `Bearer ${await movieAccessToken()}` },
   });
   if (!res.ok) throw new Error(`TMDB error: ${res.status}`);
   return res.json();
