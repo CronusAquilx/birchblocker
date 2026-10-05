@@ -113,6 +113,29 @@ export function liveVoiceDev(): Plugin {
       const sockets = new WebSocketServer({ noServer: true, maxPayload: 5 * 1024 * 1024 });
       let disposed = false;
       const upgrade = (request: IncomingMessage, socket: Duplex, head: Buffer) => {
+        if (request.url?.split("?", 1)[0] === "/api/proxy-ws") {
+          void (async () => {
+            const params = new URL(request.url ?? "/", "http://localhost").searchParams;
+            try {
+              const auth = (await server.ssrLoadModule("/src/lib/astra/api-user.server.ts")) as typeof import("./src/lib/astra/api-user.server");
+              const ok = await auth.authenticateRequest(new Request("http://localhost/", { headers: { authorization: `Bearer ${params.get("token") ?? ""}` } }));
+              const target = params.get("url") ?? "";
+              if (!ok || !/^wss?:\/\//i.test(target)) return rejectUpgrade(socket, 401);
+              const protocols = (params.get("protocols") ?? "").split(",").filter(Boolean);
+              sockets.handleUpgrade(request, socket, head, (browser) => {
+                const up = new WebSocket(target, protocols, { headers: { origin: params.get("origin") ?? new URL(target.replace(/^ws/, "http")).origin, "user-agent": "Mozilla/5.0" } });
+                const queue: [WebSocket.RawData, boolean][] = [];
+                browser.on("message", (d, bin) => (up.readyState === WebSocket.OPEN ? up.send(d, { binary: bin }) : queue.push([d, bin])));
+                up.on("open", () => { browser.send(JSON.stringify({ __astra: "open", protocol: up.protocol })); for (const [d, b] of queue.splice(0)) up.send(d, { binary: b }); });
+                up.on("message", (d, bin) => browser.send(d, { binary: bin }));
+                const end = (c?: number, r?: Buffer | string) => { const code = c && c >= 1000 && c < 5000 && c !== 1005 && c !== 1006 ? c : 1000; try { browser.close(code, String(r ?? "")); } catch {} try { up.close(); } catch {} };
+                up.on("close", end); up.on("error", () => end(1011));
+                browser.on("close", () => { try { up.close(); } catch {} });
+              });
+            } catch { rejectUpgrade(socket, 502); }
+          })();
+          return;
+        }
         if (request.url?.split("?", 1)[0] !== "/api/live") return;
         socket.on("error", () => {});
         const timer = setTimeout(() => socket.destroy(), 10_000);

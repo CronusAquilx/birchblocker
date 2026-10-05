@@ -45,11 +45,13 @@ function Web() {
       patch(id, { url, title: new URL(url).hostname, query: q });
       return;
     }
-    const ext = searchUrl(q, prefs.searchEngine);
-    if (ext) { window.open(ext, "_blank", "noopener"); return; }
-    patch(id, { loading: true, query: q, title: q, url: null });
-    const { results } = await search({ data: { q } }).catch(() => ({ results: [] as Result[] }));
-    patch(id, { results, loading: false });
+    if (prefs.searchEngine === "astra") {
+      patch(id, { loading: true, query: q, title: q, url: null });
+      const { results } = await search({ data: { q } }).catch(() => ({ results: [] as Result[] }));
+      patch(id, { results, loading: false });
+      return;
+    }
+    patch(id, { url: searchUrl(q, prefs.searchEngine)!, title: q, query: q, results: null });
   }
 
   function newTab() {
@@ -89,14 +91,7 @@ function Web() {
       </form>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {tab.url ? (
-          prefs.proxyEnabled ? (
-            <ProxiedFrame key={tab.url} url={tab.url} title={tab.title} prefs={prefs} />
-          ) : (
-            <div className="flex h-full flex-col">
-              <iframe key={tab.url} src={tab.url} title={tab.title} className="w-full flex-1 bg-background" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" />
-              <p className="border-t px-3 py-1.5 text-xs text-muted-foreground">Page blank? Some sites don't allow being shown inside other apps — use the open-in-new-window button.</p>
-            </div>
-          )
+          <ProxiedFrame key={tab.url} url={tab.url} title={tab.title} prefs={prefs} />
         ) : tab.loading ? (
           <p className="p-6 text-sm text-muted-foreground">Searching…</p>
         ) : tab.results ? (

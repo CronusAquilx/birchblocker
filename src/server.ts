@@ -46,6 +46,33 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+type WS = WebSocket & { accept(): void };
+declare const WebSocketPair: { new (): { 0: WS; 1: WS } };
+
+/** Relays a live (WebSocket) connection for proxied sites like Discord. */
+async function proxyWebSocket(url: URL): Promise<Response> {
+  const target = url.searchParams.get("url") ?? "";
+  if (!/^wss?:\/\//i.test(target)) return new Response("Bad url", { status: 400 });
+  const protocols = url.searchParams.get("protocols") ?? "";
+  const headers: Record<string, string> = { Upgrade: "websocket", origin: url.searchParams.get("origin") ?? new URL(target.replace(/^ws/, "http")).origin, "user-agent": "Mozilla/5.0" };
+  if (protocols) headers["sec-websocket-protocol"] = protocols;
+  const res = await fetch(target.replace(/^ws/, "http"), { headers });
+  const up = (res as Response & { webSocket?: WS | null }).webSocket;
+  if (!up) return new Response("Upstream refused", { status: 502 });
+  up.accept();
+  const pair = new WebSocketPair();
+  const browser = pair[1];
+  browser.accept();
+  browser.send(JSON.stringify({ __astra: "open", protocol: res.headers.get("sec-websocket-protocol") ?? "" }));
+  const safe = (c: number) => (c >= 1000 && c < 5000 && c !== 1005 && c !== 1006 ? c : 1000);
+  browser.addEventListener("message", (e) => { try { up.send(e.data); } catch {} });
+  up.addEventListener("message", (e) => { try { browser.send(e.data); } catch {} });
+  browser.addEventListener("close", (e) => { try { up.close(safe(e.code), e.reason); } catch {} });
+  up.addEventListener("close", (e) => { try { browser.close(safe(e.code), e.reason); } catch {} });
+  up.addEventListener("error", () => { try { browser.close(1011, "upstream error"); } catch {} });
+  return new Response(null, { status: 101, webSocket: pair[0] } as ResponseInit & { webSocket: WebSocket });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
@@ -55,6 +82,11 @@ export default {
         const user = await authenticateRequest(new Request(request.url, { headers: { authorization: `Bearer ${token}` } }));
         if (!user) return new Response("Please sign in again.", { status: 401 });
         return handleLiveRequest(request, token);
+      }
+      if (url.pathname === "/api/proxy-ws") {
+        const user = await authenticateRequest(new Request(request.url, { headers: { authorization: `Bearer ${url.searchParams.get("token") ?? ""}` } }));
+        if (!user) return new Response("Unauthorized", { status: 401 });
+        return proxyWebSocket(url);
       }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
