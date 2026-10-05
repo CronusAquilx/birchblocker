@@ -8,6 +8,8 @@ import ChannelsRow from "@/components/movies/ChannelsRow";
 import FreeContentRow from "@/components/movies/FreeContentRow";
 import MovieCard from "@/components/movies/MovieCard";
 import { useAnime, useByGenre, useKDrama, useNowPlaying, usePopular, useSearch, useTopRatedMovies, useTopRatedTV, useTrending } from "@/lib/movies/hooks";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { LayoutGrid } from "lucide-react";
 import { GENRE_LIST, YOUTUBE_MOVIES } from "@/lib/movies/tmdb";
 import { useWatchHistory } from "@/lib/movies/watch-history";
 import { useWatchlist } from "@/lib/movies/watchlist";
@@ -60,6 +62,7 @@ function Movies() {
   const watchlist = useWatchlist();
   const history = useWatchHistory();
   const [genre, setGenre] = useState<string | null>(null);
+  const [genresOpen, setGenresOpen] = useState(false);
   const genreResults = useByGenre(genre ?? "");
   const continueWatching = (() => {
     const seen = new Set<string>();
@@ -102,22 +105,26 @@ function Movies() {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search movies & shows" className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
         </div>
       </header>
-      <div className="flex items-center gap-1.5 overflow-x-auto px-4 pt-3 pb-1 sm:px-6">
-        <button
-          onClick={() => setGenre(null)}
-          className={`shrink-0 rounded-full border px-3 py-1 text-xs ${genre === null ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"}`}
-        >
-          All
-        </button>
-        {GENRE_LIST.map((g) => (
-          <button
-            key={g.id}
-            onClick={() => { setQ(""); setGenre(genre === g.id ? null : g.id); }}
-            className={`shrink-0 rounded-full border px-3 py-1 text-xs ${genre === g.id ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"}`}
-          >
-            {g.name}
-          </button>
-        ))}
+      <div className="flex items-center gap-2 px-4 pt-3 pb-1 sm:px-6">
+        <Dialog open={genresOpen} onOpenChange={setGenresOpen}>
+          <DialogTrigger asChild>
+            <button className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${genre ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-accent"}`}>
+              <LayoutGrid className="size-4" /> {genre ? GENRE_LIST.find((g) => g.id === genre)?.name ?? "Genres" : "Genres"}
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>Browse by genre</DialogTitle></DialogHeader>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {GENRE_LIST.map((g) => (
+                <button key={g.id} onClick={() => { setQ(""); setGenre(g.id); setGenresOpen(false); }}
+                  className={`rounded-lg border px-3 py-3 text-left text-sm font-medium transition ${genre === g.id ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-accent"}`}>
+                  {g.name}
+                </button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+        {genre && <button onClick={() => setGenre(null)} className="rounded-full border px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent">Clear</button>}
       </div>
       {genre && q.trim().length <= 1 ? (
         <div className="grid grid-cols-3 gap-3 p-4 sm:grid-cols-4 lg:grid-cols-6">
