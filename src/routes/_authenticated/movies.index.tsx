@@ -8,11 +8,10 @@ import ChannelsRow from "@/components/movies/ChannelsRow";
 import FreeContentRow from "@/components/movies/FreeContentRow";
 import MovieCard from "@/components/movies/MovieCard";
 import { useAnime, useByGenre, useKDrama, useNowPlaying, usePopular, useSearch, useTopRatedMovies, useTopRatedTV, useTrending } from "@/lib/movies/hooks";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { GENRE_LIST, YOUTUBE_MOVIES } from "@/lib/movies/tmdb";
 import { useWatchHistory } from "@/lib/movies/watch-history";
 import { useWatchlist } from "@/lib/movies/watchlist";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogTrigger, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 /** Asks once per visit whether the user is at home or school; school locks the player to APIPlayer. */
