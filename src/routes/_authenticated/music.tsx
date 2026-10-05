@@ -12,13 +12,21 @@ export const Route = createFileRoute("/_authenticated/music")({
   component: Music,
 });
 
-type Track = { id: string; title: string; artist: string; artistId: string; album: string; albumId: string; art: string; duration: number };
+type Track = { id: string; title: string; artist: string; artistId: string; album: string; albumId: string; art: string; duration: number; preview?: string };
 type Album = { id: string; title: string; artist: string; art: string; year?: string };
 type Artist = { id: string; name: string; art: string; fans?: number };
 type View =
   | { kind: "home" | "search"; title: string; tracks: Track[]; albums: Album[]; artists: Artist[] }
   | { kind: "album"; data: Album & { tracks: Track[] } }
   | { kind: "artist"; data: Artist & { tracks: Track[]; albums: Album[] } };
+
+const SERVERS = [
+  { id: "soundcloud", name: "SoundCloud" },
+  { id: "audius", name: "Audius" },
+  { id: "youtube", name: "YouTube" },
+  { id: "deezer", name: "Deezer (preview)" },
+] as const;
+type Server = (typeof SERVERS)[number]["id"];
 
 let TOKEN = "";
 async function api<T>(params: Record<string, string>): Promise<T> {
@@ -44,6 +52,11 @@ function Music() {
   const [status, setStatus] = useState("");
   const [lyrics, setLyrics] = useState<string | null>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [server, setServer] = useState<Server>("soundcloud");
+  const [paused, setPaused] = useState(false);
+  useEffect(() => { const v = localStorage.getItem("bb-music-server"); if (v && SERVERS.some((x) => x.id === v)) setServer(v as Server); }, []);
+  const pickServer = (v: Server) => { localStorage.setItem("bb-music-server", v); setServer(v); };
   const track = cur >= 0 ? queue[cur] : undefined;
 
   async function go(load: () => Promise<View>, push = true) {
@@ -69,15 +82,38 @@ function Music() {
 
   async function play(list: Track[], i: number) {
     const t = list[i];
-    if (!t || !frameRef.current) return;
-    setQueue(list); setCur(i); setLyrics(null); setStatus("Finding song…");
-    try {
-      const { ids } = await api<{ ids: string[] }>({ op: "video", q: `${t.artist} ${t.title}` });
-      if (!ids[0]) { setStatus("Couldn't find a playable version"); return; }
-      setStatus("Loading…");
-      await openProxied(frameRef.current, `https://www.youtube.com/embed/${ids[0]}?autoplay=1&playsinline=1&rel=0`, prefs);
-      setStatus("");
-    } catch (e) { setStatus(e instanceof Error ? e.message : "Playback failed"); }
+    if (!t) return;
+    setQueue(list); setCur(i); setLyrics(null); setStatus("Finding song…"); setPaused(false);
+    const audio = audioRef.current;
+    if (audio) { audio.pause(); audio.removeAttribute("src"); }
+    if (frameRef.current) frameRef.current.src = "about:blank";
+    const order = [server, ...SERVERS.map((x) => x.id).filter((x) => x !== server)];
+    for (const sv of order) {
+      try {
+        if (sv === "youtube") {
+          if (!frameRef.current) continue;
+          const { ids } = await api<{ ids: string[] }>({ op: "video", q: `${t.artist} ${t.title}` });
+          if (!ids[0]) continue;
+          await openProxied(frameRef.current, `https://www.youtube.com/embed/${ids[0]}?autoplay=1&playsinline=1&rel=0`, prefs);
+          setStatus(sv === server ? "" : `Playing from YouTube`);
+          return;
+        }
+        const { url } = await api<{ url: string | null }>({ op: "resolve", server: sv, q: `${t.artist} ${t.title}`, preview: t.preview ?? "" });
+        if (!url || !audio) continue;
+        audio.src = `/api/music?op=audio&u=${encodeURIComponent(url)}&token=${encodeURIComponent(TOKEN)}`;
+        await audio.play();
+        const name = SERVERS.find((x) => x.id === sv)!.name;
+        setStatus(sv === server ? (sv === "deezer" ? "30-second preview" : "") : `Playing from ${name}${sv === "deezer" ? " (preview)" : ""}`);
+        return;
+      } catch { /* try the next server */ }
+    }
+    setStatus("Couldn't find a playable version on any server");
+  }
+
+  function togglePause() {
+    const a = audioRef.current;
+    if (a?.src && !a.ended) { if (a.paused) { void a.play(); setPaused(false); } else { a.pause(); setPaused(true); } return; }
+    setCur(-1); if (frameRef.current) frameRef.current.src = "about:blank";
   }
 
   async function showLyrics() {
@@ -141,6 +177,9 @@ function Music() {
           <Search className="size-4 text-muted-foreground" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search songs, albums, artists" className="w-full bg-transparent text-sm outline-none" />
         </form>
+        <select value={server} onChange={(e) => pickServer(e.target.value as Server)} aria-label="Music server" className="rounded-md border bg-card px-2 py-1.5 text-sm">
+          {SERVERS.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+        </select>
       </header>
 
       <div className="flex-1 overflow-y-auto">
@@ -183,9 +222,10 @@ function Music() {
             <div className="truncate text-xs text-muted-foreground">{status || track?.artist}</div>
           </div>
           <button onClick={() => play(queue, Math.max(0, cur - 1))} className="rounded-md p-2 hover:bg-accent" aria-label="Previous"><SkipBack className="size-4" /></button>
-          <button onClick={() => { setCur(-1); if (frameRef.current) frameRef.current.src = "about:blank"; }} className="rounded-full bg-primary p-2 text-primary-foreground" aria-label="Stop"><Pause className="size-4" /></button>
+          <button onClick={togglePause} className="rounded-full bg-primary p-2 text-primary-foreground" aria-label={paused ? "Play" : "Pause"}>{paused ? <Play className="size-4" /> : <Pause className="size-4" />}</button>
           <button onClick={() => play(queue, Math.min(queue.length - 1, cur + 1))} className="rounded-md p-2 hover:bg-accent" aria-label="Next"><SkipForward className="size-4" /></button>
           <button onClick={showLyrics} className={cn("rounded-md p-2 hover:bg-accent", lyrics !== null && "bg-accent")} aria-label="Lyrics"><Mic2 className="size-4" /></button>
+          <audio ref={audioRef} onEnded={() => { if (cur < queue.length - 1) void play(queue, cur + 1); }} className="hidden" />
           <iframe ref={frameRef} title="Player" className="h-11 w-20 rounded-md border-0" allow="autoplay; encrypted-media" />
         </div>
       </div>
