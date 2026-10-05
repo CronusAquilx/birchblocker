@@ -36,7 +36,7 @@ export const DEFAULT_PREFS: Prefs = {
   reduceMotion: false,
   glowTitle: true,
   tagline: "everything in one place",
-  homeName: "astra",
+  homeName: "birchblock",
   showClock: true,
   openLinksInNewTab: false,
   searchEngine: "astra",

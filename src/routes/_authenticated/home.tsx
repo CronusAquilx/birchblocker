@@ -45,7 +45,7 @@ function Home() {
         {p.showClock && (
           <div className="label-mono mb-4">{now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</div>
         )}
-        <h1 className={cn("font-display text-7xl text-star md:text-8xl", p.glowTitle && "title-glow")}>{p.homeName || "astra"}</h1>
+        <h1 className={cn("font-display text-7xl text-star md:text-8xl", p.glowTitle && "title-glow")}>{p.homeName === "astra" || !p.homeName ? "birchblock" : p.homeName}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{p.tagline}</p>
         <form
           onSubmit={(e) => {
