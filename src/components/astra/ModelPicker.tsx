@@ -18,7 +18,7 @@ export function ModelPicker({ modelId, reasoning, onModel, onReasoning }: Props)
       <Popover>
         <PopoverTrigger className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground">
           <AstraMark className="size-3.5" />
-          <span className="max-w-28 truncate">{current?.display_name ?? "BirchBlock"}</span>
+          <span className="max-w-28 truncate">{current?.display_name ?? "Astra"}</span>
           <ChevronDown className="size-3.5" />
         </PopoverTrigger>
         <PopoverContent align="start" className="w-72 p-1.5">
