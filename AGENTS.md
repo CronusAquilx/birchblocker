@@ -19,4 +19,5 @@
 - Voice mode is a GPT Live call through the Lovable AI Gateway (uses workspace credits): `src/hooks/use-live-voice.ts` ↔ `/api/live` ↔ `src/lib/live-relay.server.ts` (backend model `openai/gpt-6-astra`). The on-device free voice (`src/hooks/use-free-voice.ts`, Whisper + Kokoro) is kept but not wired into the voice page.
 
 - Movies tab: TMDB data and posters go through the `/api/movies` relay route so browsers only contact the app domain; it authenticates via bearer header or `?token=` (iframes/images cannot set headers), streaming-source players load directly (user asked sources not to be proxied).
+- Movie captions use an authenticated `/api/movies` catalog/file relay and a parent-player overlay; third-party player captions remain the fallback when a source does not report playback time.
 - Music traffic (iTunes catalog, artwork, lyrics, YouTube lookups) goes through the authenticated `/api/music` relay, playback loads in the scramjet proxy frame, and catalog comes from Deezer via the relay.
