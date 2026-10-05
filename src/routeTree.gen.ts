@@ -10,33 +10,361 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedGamesRouteImport } from './routes/_authenticated/games'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedMemoryRouteImport } from './routes/_authenticated/memory'
+import { Route as AuthenticatedMusicRouteImport } from './routes/_authenticated/music'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedVoiceRouteImport } from './routes/_authenticated/voice'
+import { Route as AuthenticatedWebRouteImport } from './routes/_authenticated/web'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiMoviesRouteImport } from './routes/api/movies'
+import { Route as ApiMusicRouteImport } from './routes/api/music'
+import { Route as ApiProxyRouteImport } from './routes/api/proxy'
+import { Route as ApiSpeechRouteImport } from './routes/api/speech'
+import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
+import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
+import { Route as AuthenticatedChatThreadIdRouteImport } from './routes/_authenticated/chat.$threadId'
+import { Route as AuthenticatedMoviesIndexRouteImport } from './routes/_authenticated/movies.index'
+import { Route as ScramjetPSplatRouteImport } from './routes/scramjet.p.$'
+import { Route as AuthenticatedMoviesFreeVideoIdRouteImport } from './routes/_authenticated/movies.free.$videoId'
+import { Route as AuthenticatedMoviesPersonIdRouteImport } from './routes/_authenticated/movies.person.$id'
+import { Route as AuthenticatedMoviesProviderSlugRouteImport } from './routes/_authenticated/movies.provider.$slug'
+import { Route as ApiPublicGamesSplatRouteImport } from './routes/api/public/games.$'
+import { Route as AuthenticatedMoviesTitleTypeIdRouteImport } from './routes/_authenticated/movies.title.$type.$id'
+import { Route as AuthenticatedMoviesWatchTypeIdRouteImport } from './routes/_authenticated/movies.watch.$type.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGamesRoute = AuthenticatedGamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMemoryRoute = AuthenticatedMemoryRouteImport.update({
+  id: '/memory',
+  path: '/memory',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMusicRoute = AuthenticatedMusicRouteImport.update({
+  id: '/music',
+  path: '/music',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedVoiceRoute = AuthenticatedVoiceRouteImport.update({
+  id: '/voice',
+  path: '/voice',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWebRoute = AuthenticatedWebRouteImport.update({
+  id: '/web',
+  path: '/web',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMoviesRoute = ApiMoviesRouteImport.update({
+  id: '/api/movies',
+  path: '/api/movies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMusicRoute = ApiMusicRouteImport.update({
+  id: '/api/music',
+  path: '/api/music',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProxyRoute = ApiProxyRouteImport.update({
+  id: '/api/proxy',
+  path: '/api/proxy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSpeechRoute = ApiSpeechRouteImport.update({
+  id: '/api/speech',
+  path: '/api/speech',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
+  id: '/api/transcribe',
+  path: '/api/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
+  id: '/chat/',
+  path: '/chat/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedChatThreadIdRoute =
+  AuthenticatedChatThreadIdRouteImport.update({
+    id: '/chat/$threadId',
+    path: '/chat/$threadId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMoviesIndexRoute =
+  AuthenticatedMoviesIndexRouteImport.update({
+    id: '/movies/',
+    path: '/movies/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ScramjetPSplatRoute = ScramjetPSplatRouteImport.update({
+  id: '/scramjet/p/$',
+  path: '/scramjet/p/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMoviesFreeVideoIdRoute =
+  AuthenticatedMoviesFreeVideoIdRouteImport.update({
+    id: '/movies/free/$videoId',
+    path: '/movies/free/$videoId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMoviesPersonIdRoute =
+  AuthenticatedMoviesPersonIdRouteImport.update({
+    id: '/movies/person/$id',
+    path: '/movies/person/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMoviesProviderSlugRoute =
+  AuthenticatedMoviesProviderSlugRouteImport.update({
+    id: '/movies/provider/$slug',
+    path: '/movies/provider/$slug',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicGamesSplatRoute = ApiPublicGamesSplatRouteImport.update({
+  id: '/api/public/games/$',
+  path: '/api/public/games/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMoviesTitleTypeIdRoute =
+  AuthenticatedMoviesTitleTypeIdRouteImport.update({
+    id: '/movies/title/$type/$id',
+    path: '/movies/title/$type/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMoviesWatchTypeIdRoute =
+  AuthenticatedMoviesWatchTypeIdRouteImport.update({
+    id: '/movies/watch/$type/$id',
+    path: '/movies/watch/$type/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/games': typeof AuthenticatedGamesRoute
+  '/home': typeof AuthenticatedHomeRoute
+  '/memory': typeof AuthenticatedMemoryRoute
+  '/music': typeof AuthenticatedMusicRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/voice': typeof AuthenticatedVoiceRoute
+  '/web': typeof AuthenticatedWebRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/movies': typeof ApiMoviesRoute
+  '/api/music': typeof ApiMusicRoute
+  '/api/proxy': typeof ApiProxyRoute
+  '/api/speech': typeof ApiSpeechRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
+  '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/scramjet/p/$': typeof ScramjetPSplatRoute
+  '/chat/': typeof AuthenticatedChatIndexRoute
+  '/movies/': typeof AuthenticatedMoviesIndexRoute
+  '/movies/free/$videoId': typeof AuthenticatedMoviesFreeVideoIdRoute
+  '/movies/person/$id': typeof AuthenticatedMoviesPersonIdRoute
+  '/movies/provider/$slug': typeof AuthenticatedMoviesProviderSlugRoute
+  '/api/public/games/$': typeof ApiPublicGamesSplatRoute
+  '/movies/title/$type/$id': typeof AuthenticatedMoviesTitleTypeIdRoute
+  '/movies/watch/$type/$id': typeof AuthenticatedMoviesWatchTypeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/games': typeof AuthenticatedGamesRoute
+  '/home': typeof AuthenticatedHomeRoute
+  '/memory': typeof AuthenticatedMemoryRoute
+  '/music': typeof AuthenticatedMusicRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/voice': typeof AuthenticatedVoiceRoute
+  '/web': typeof AuthenticatedWebRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/movies': typeof ApiMoviesRoute
+  '/api/music': typeof ApiMusicRoute
+  '/api/proxy': typeof ApiProxyRoute
+  '/api/speech': typeof ApiSpeechRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
+  '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/scramjet/p/$': typeof ScramjetPSplatRoute
+  '/chat': typeof AuthenticatedChatIndexRoute
+  '/movies': typeof AuthenticatedMoviesIndexRoute
+  '/movies/free/$videoId': typeof AuthenticatedMoviesFreeVideoIdRoute
+  '/movies/person/$id': typeof AuthenticatedMoviesPersonIdRoute
+  '/movies/provider/$slug': typeof AuthenticatedMoviesProviderSlugRoute
+  '/api/public/games/$': typeof ApiPublicGamesSplatRoute
+  '/movies/title/$type/$id': typeof AuthenticatedMoviesTitleTypeIdRoute
+  '/movies/watch/$type/$id': typeof AuthenticatedMoviesWatchTypeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/games': typeof AuthenticatedGamesRoute
+  '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/memory': typeof AuthenticatedMemoryRoute
+  '/_authenticated/music': typeof AuthenticatedMusicRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/voice': typeof AuthenticatedVoiceRoute
+  '/_authenticated/web': typeof AuthenticatedWebRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/movies': typeof ApiMoviesRoute
+  '/api/music': typeof ApiMusicRoute
+  '/api/proxy': typeof ApiProxyRoute
+  '/api/speech': typeof ApiSpeechRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
+  '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
+  '/scramjet/p/$': typeof ScramjetPSplatRoute
+  '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
+  '/_authenticated/movies/': typeof AuthenticatedMoviesIndexRoute
+  '/_authenticated/movies/free/$videoId': typeof AuthenticatedMoviesFreeVideoIdRoute
+  '/_authenticated/movies/person/$id': typeof AuthenticatedMoviesPersonIdRoute
+  '/_authenticated/movies/provider/$slug': typeof AuthenticatedMoviesProviderSlugRoute
+  '/api/public/games/$': typeof ApiPublicGamesSplatRoute
+  '/_authenticated/movies/title/$type/$id': typeof AuthenticatedMoviesTitleTypeIdRoute
+  '/_authenticated/movies/watch/$type/$id': typeof AuthenticatedMoviesWatchTypeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/games'
+    | '/home'
+    | '/memory'
+    | '/music'
+    | '/settings'
+    | '/voice'
+    | '/web'
+    | '/api/chat'
+    | '/api/movies'
+    | '/api/music'
+    | '/api/proxy'
+    | '/api/speech'
+    | '/api/transcribe'
+    | '/chat/$threadId'
+    | '/scramjet/p/$'
+    | '/chat/'
+    | '/movies/'
+    | '/movies/free/$videoId'
+    | '/movies/person/$id'
+    | '/movies/provider/$slug'
+    | '/api/public/games/$'
+    | '/movies/title/$type/$id'
+    | '/movies/watch/$type/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/games'
+    | '/home'
+    | '/memory'
+    | '/music'
+    | '/settings'
+    | '/voice'
+    | '/web'
+    | '/api/chat'
+    | '/api/movies'
+    | '/api/music'
+    | '/api/proxy'
+    | '/api/speech'
+    | '/api/transcribe'
+    | '/chat/$threadId'
+    | '/scramjet/p/$'
+    | '/chat'
+    | '/movies'
+    | '/movies/free/$videoId'
+    | '/movies/person/$id'
+    | '/movies/provider/$slug'
+    | '/api/public/games/$'
+    | '/movies/title/$type/$id'
+    | '/movies/watch/$type/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/admin'
+    | '/_authenticated/games'
+    | '/_authenticated/home'
+    | '/_authenticated/memory'
+    | '/_authenticated/music'
+    | '/_authenticated/settings'
+    | '/_authenticated/voice'
+    | '/_authenticated/web'
+    | '/api/chat'
+    | '/api/movies'
+    | '/api/music'
+    | '/api/proxy'
+    | '/api/speech'
+    | '/api/transcribe'
+    | '/_authenticated/chat/$threadId'
+    | '/scramjet/p/$'
+    | '/_authenticated/chat/'
+    | '/_authenticated/movies/'
+    | '/_authenticated/movies/free/$videoId'
+    | '/_authenticated/movies/person/$id'
+    | '/_authenticated/movies/provider/$slug'
+    | '/api/public/games/$'
+    | '/_authenticated/movies/title/$type/$id'
+    | '/_authenticated/movies/watch/$type/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ApiChatRoute: typeof ApiChatRoute
+  ApiMoviesRoute: typeof ApiMoviesRoute
+  ApiMusicRoute: typeof ApiMusicRoute
+  ApiProxyRoute: typeof ApiProxyRoute
+  ApiSpeechRoute: typeof ApiSpeechRoute
+  ApiTranscribeRoute: typeof ApiTranscribeRoute
+  ScramjetPSplatRoute: typeof ScramjetPSplatRoute
+  ApiPublicGamesSplatRoute: typeof ApiPublicGamesSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +376,244 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/games': {
+      id: '/_authenticated/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof AuthenticatedGamesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/memory': {
+      id: '/_authenticated/memory'
+      path: '/memory'
+      fullPath: '/memory'
+      preLoaderRoute: typeof AuthenticatedMemoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/music': {
+      id: '/_authenticated/music'
+      path: '/music'
+      fullPath: '/music'
+      preLoaderRoute: typeof AuthenticatedMusicRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/voice': {
+      id: '/_authenticated/voice'
+      path: '/voice'
+      fullPath: '/voice'
+      preLoaderRoute: typeof AuthenticatedVoiceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/web': {
+      id: '/_authenticated/web'
+      path: '/web'
+      fullPath: '/web'
+      preLoaderRoute: typeof AuthenticatedWebRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/movies': {
+      id: '/api/movies'
+      path: '/api/movies'
+      fullPath: '/api/movies'
+      preLoaderRoute: typeof ApiMoviesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/music': {
+      id: '/api/music'
+      path: '/api/music'
+      fullPath: '/api/music'
+      preLoaderRoute: typeof ApiMusicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/proxy': {
+      id: '/api/proxy'
+      path: '/api/proxy'
+      fullPath: '/api/proxy'
+      preLoaderRoute: typeof ApiProxyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/speech': {
+      id: '/api/speech'
+      path: '/api/speech'
+      fullPath: '/api/speech'
+      preLoaderRoute: typeof ApiSpeechRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/transcribe': {
+      id: '/api/transcribe'
+      path: '/api/transcribe'
+      fullPath: '/api/transcribe'
+      preLoaderRoute: typeof ApiTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/chat/': {
+      id: '/_authenticated/chat/'
+      path: '/chat'
+      fullPath: '/chat/'
+      preLoaderRoute: typeof AuthenticatedChatIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/chat/$threadId': {
+      id: '/_authenticated/chat/$threadId'
+      path: '/chat/$threadId'
+      fullPath: '/chat/$threadId'
+      preLoaderRoute: typeof AuthenticatedChatThreadIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/movies/': {
+      id: '/_authenticated/movies/'
+      path: '/movies'
+      fullPath: '/movies/'
+      preLoaderRoute: typeof AuthenticatedMoviesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/scramjet/p/$': {
+      id: '/scramjet/p/$'
+      path: '/scramjet/p/$'
+      fullPath: '/scramjet/p/$'
+      preLoaderRoute: typeof ScramjetPSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/movies/free/$videoId': {
+      id: '/_authenticated/movies/free/$videoId'
+      path: '/movies/free/$videoId'
+      fullPath: '/movies/free/$videoId'
+      preLoaderRoute: typeof AuthenticatedMoviesFreeVideoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/movies/person/$id': {
+      id: '/_authenticated/movies/person/$id'
+      path: '/movies/person/$id'
+      fullPath: '/movies/person/$id'
+      preLoaderRoute: typeof AuthenticatedMoviesPersonIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/movies/provider/$slug': {
+      id: '/_authenticated/movies/provider/$slug'
+      path: '/movies/provider/$slug'
+      fullPath: '/movies/provider/$slug'
+      preLoaderRoute: typeof AuthenticatedMoviesProviderSlugRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/games/$': {
+      id: '/api/public/games/$'
+      path: '/api/public/games/$'
+      fullPath: '/api/public/games/$'
+      preLoaderRoute: typeof ApiPublicGamesSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/movies/title/$type/$id': {
+      id: '/_authenticated/movies/title/$type/$id'
+      path: '/movies/title/$type/$id'
+      fullPath: '/movies/title/$type/$id'
+      preLoaderRoute: typeof AuthenticatedMoviesTitleTypeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/movies/watch/$type/$id': {
+      id: '/_authenticated/movies/watch/$type/$id'
+      path: '/movies/watch/$type/$id'
+      fullPath: '/movies/watch/$type/$id'
+      preLoaderRoute: typeof AuthenticatedMoviesWatchTypeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedGamesRoute: typeof AuthenticatedGamesRoute
+  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedMemoryRoute: typeof AuthenticatedMemoryRoute
+  AuthenticatedMusicRoute: typeof AuthenticatedMusicRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedVoiceRoute: typeof AuthenticatedVoiceRoute
+  AuthenticatedWebRoute: typeof AuthenticatedWebRoute
+  AuthenticatedChatThreadIdRoute: typeof AuthenticatedChatThreadIdRoute
+  AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
+  AuthenticatedMoviesIndexRoute: typeof AuthenticatedMoviesIndexRoute
+  AuthenticatedMoviesFreeVideoIdRoute: typeof AuthenticatedMoviesFreeVideoIdRoute
+  AuthenticatedMoviesPersonIdRoute: typeof AuthenticatedMoviesPersonIdRoute
+  AuthenticatedMoviesProviderSlugRoute: typeof AuthenticatedMoviesProviderSlugRoute
+  AuthenticatedMoviesTitleTypeIdRoute: typeof AuthenticatedMoviesTitleTypeIdRoute
+  AuthenticatedMoviesWatchTypeIdRoute: typeof AuthenticatedMoviesWatchTypeIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedGamesRoute: AuthenticatedGamesRoute,
+  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedMemoryRoute: AuthenticatedMemoryRoute,
+  AuthenticatedMusicRoute: AuthenticatedMusicRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedVoiceRoute: AuthenticatedVoiceRoute,
+  AuthenticatedWebRoute: AuthenticatedWebRoute,
+  AuthenticatedChatThreadIdRoute: AuthenticatedChatThreadIdRoute,
+  AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,
+  AuthenticatedMoviesIndexRoute: AuthenticatedMoviesIndexRoute,
+  AuthenticatedMoviesFreeVideoIdRoute: AuthenticatedMoviesFreeVideoIdRoute,
+  AuthenticatedMoviesPersonIdRoute: AuthenticatedMoviesPersonIdRoute,
+  AuthenticatedMoviesProviderSlugRoute: AuthenticatedMoviesProviderSlugRoute,
+  AuthenticatedMoviesTitleTypeIdRoute: AuthenticatedMoviesTitleTypeIdRoute,
+  AuthenticatedMoviesWatchTypeIdRoute: AuthenticatedMoviesWatchTypeIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ApiChatRoute: ApiChatRoute,
+  ApiMoviesRoute: ApiMoviesRoute,
+  ApiMusicRoute: ApiMusicRoute,
+  ApiProxyRoute: ApiProxyRoute,
+  ApiSpeechRoute: ApiSpeechRoute,
+  ApiTranscribeRoute: ApiTranscribeRoute,
+  ScramjetPSplatRoute: ScramjetPSplatRoute,
+  ApiPublicGamesSplatRoute: ApiPublicGamesSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

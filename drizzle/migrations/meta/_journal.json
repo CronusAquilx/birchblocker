@@ -1,5 +1,41 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791048749567,
+      "tag": "0000_restore_signup_trigger",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791053432636,
+      "tag": "0001_astra_initial_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791053472647,
+      "tag": "0002_astra_images_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791054061386,
+      "tag": "0003_astra_mini_model",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791064375557,
+      "tag": "0004_noop_apply_pending",
+      "breakpoints": true
+    }
+  ]
 }

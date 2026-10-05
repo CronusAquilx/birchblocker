@@ -2,6 +2,8 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleLiveRequest } from "./lib/live-relay.server";
+import { authenticateRequest } from "./lib/astra/api-user.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -47,6 +49,13 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname === "/api/live") {
+        const token = url.searchParams.get("token") ?? "";
+        const user = await authenticateRequest(new Request(request.url, { headers: { authorization: `Bearer ${token}` } }));
+        if (!user) return new Response("Please sign in again.", { status: 401 });
+        return handleLiveRequest(request, token);
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

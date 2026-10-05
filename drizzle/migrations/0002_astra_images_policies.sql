@@ -1,0 +1,4 @@
+CREATE POLICY "Users can view their own generated images" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'astra-images' AND (storage.foldername(name))[1] = auth.uid()::text);
+CREATE POLICY "Users can save their own generated images" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'astra-images' AND (storage.foldername(name))[1] = auth.uid()::text);
+CREATE POLICY "Users can manage their own generated images" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'astra-images' AND (storage.foldername(name))[1] = auth.uid()::text);
+CREATE POLICY "Users can delete their own generated images" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'astra-images' AND (storage.foldername(name))[1] = auth.uid()::text);
