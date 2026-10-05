@@ -23,11 +23,12 @@ export function useWatchHistory() {
 
   const record = useMutation({
     mutationFn: async (item: { tmdb_id: number; media_type: string; title?: string; poster_path?: string; season?: number; episode?: number; progress?: number }) => {
-      const { error } = await supabase.from('watch_history').insert({
+      const { data, error } = await supabase.from('watch_history').insert({
         user_id: user!.id,
         ...item,
-      });
+      }).select('id').single();
       if (error) throw error;
+      return data.id as string;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['watch_history'] }),
   });
@@ -40,5 +41,10 @@ export function useWatchHistory() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['watch_history'] }),
   });
 
-  return { ...query, record, clear };
+  /** Saves how far into the video the viewer is (seconds). */
+  const saveProgress = async (id: string, seconds: number) => {
+    await supabase.from('watch_history').update({ progress: Math.floor(seconds), watched_at: new Date().toISOString() }).eq('id', id);
+  };
+
+  return { ...query, record, clear, saveProgress };
 }

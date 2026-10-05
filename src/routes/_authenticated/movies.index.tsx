@@ -69,7 +69,7 @@ function Movies() {
       if (seen.has(k)) return false;
       seen.add(k);
       return true;
-    }).map((h) => ({ id: h.tmdb_id, title: h.title ?? "", poster_path: h.poster_path, backdrop_path: null, overview: "", vote_average: 0, genre_ids: [], popularity: 0, media_type: h.media_type }));
+    }).map((h) => ({ id: h.tmdb_id, title: h.title ?? "", poster_path: h.poster_path, backdrop_path: null, overview: "", vote_average: 0, genre_ids: [], popularity: 0, media_type: h.media_type, resume: { ...(h.season ? { s: h.season } : {}), ...(h.episode ? { e: h.episode } : {}), ...(h.progress ? { t: Math.floor(h.progress) } : {}) } }));
   })();
 
   useEffect(() => {
