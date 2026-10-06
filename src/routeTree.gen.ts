@@ -25,6 +25,7 @@ import { Route as ApiMoviesRouteImport } from './routes/api/movies'
 import { Route as ApiMusicRouteImport } from './routes/api/music'
 import { Route as ApiProxyRouteImport } from './routes/api/proxy'
 import { Route as ApiSpeechRouteImport } from './routes/api/speech'
+import { Route as ApiTimeRouteImport } from './routes/api/time'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as ApiVoiceReplyRouteImport } from './routes/api/voice-reply'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
@@ -117,6 +118,11 @@ const ApiSpeechRoute = ApiSpeechRouteImport.update({
   path: '/api/speech',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTimeRoute = ApiTimeRouteImport.update({
+  id: '/api/time',
+  path: '/api/time',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
   id: '/api/transcribe',
   path: '/api/transcribe',
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/api/music': typeof ApiMusicRoute
   '/api/proxy': typeof ApiProxyRoute
   '/api/speech': typeof ApiSpeechRoute
+  '/api/time': typeof ApiTimeRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/voice-reply': typeof ApiVoiceReplyRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/api/music': typeof ApiMusicRoute
   '/api/proxy': typeof ApiProxyRoute
   '/api/speech': typeof ApiSpeechRoute
+  '/api/time': typeof ApiTimeRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/voice-reply': typeof ApiVoiceReplyRoute
   '/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
@@ -261,6 +269,7 @@ export interface FileRoutesById {
   '/api/music': typeof ApiMusicRoute
   '/api/proxy': typeof ApiProxyRoute
   '/api/speech': typeof ApiSpeechRoute
+  '/api/time': typeof ApiTimeRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/voice-reply': typeof ApiVoiceReplyRoute
   '/_authenticated/chat/$threadId': typeof AuthenticatedChatThreadIdRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
     | '/api/music'
     | '/api/proxy'
     | '/api/speech'
+    | '/api/time'
     | '/api/transcribe'
     | '/api/voice-reply'
     | '/chat/$threadId'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/api/music'
     | '/api/proxy'
     | '/api/speech'
+    | '/api/time'
     | '/api/transcribe'
     | '/api/voice-reply'
     | '/chat/$threadId'
@@ -351,6 +362,7 @@ export interface FileRouteTypes {
     | '/api/music'
     | '/api/proxy'
     | '/api/speech'
+    | '/api/time'
     | '/api/transcribe'
     | '/api/voice-reply'
     | '/_authenticated/chat/$threadId'
@@ -374,6 +386,7 @@ export interface RootRouteChildren {
   ApiMusicRoute: typeof ApiMusicRoute
   ApiProxyRoute: typeof ApiProxyRoute
   ApiSpeechRoute: typeof ApiSpeechRoute
+  ApiTimeRoute: typeof ApiTimeRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
   ApiVoiceReplyRoute: typeof ApiVoiceReplyRoute
   ScramjetPSplatRoute: typeof ScramjetPSplatRoute
@@ -492,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/api/speech'
       fullPath: '/api/speech'
       preLoaderRoute: typeof ApiSpeechRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/time': {
+      id: '/api/time'
+      path: '/api/time'
+      fullPath: '/api/time'
+      preLoaderRoute: typeof ApiTimeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/transcribe': {
@@ -631,6 +651,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMusicRoute: ApiMusicRoute,
   ApiProxyRoute: ApiProxyRoute,
   ApiSpeechRoute: ApiSpeechRoute,
+  ApiTimeRoute: ApiTimeRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
   ApiVoiceReplyRoute: ApiVoiceReplyRoute,
   ScramjetPSplatRoute: ScramjetPSplatRoute,
