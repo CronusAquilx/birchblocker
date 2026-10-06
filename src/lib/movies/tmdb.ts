@@ -20,7 +20,7 @@ if (typeof window !== 'undefined') {
 export const relayToken = (): string => cachedToken;
 
 /** Fresh access token for fetch calls. */
-export const movieAccessToken = async (): Promise<string> => {
+const freshToken = async (): Promise<string> => {
   const { data } = await supabase.auth.getSession();
   cachedToken = data.session?.access_token ?? cachedToken;
   return cachedToken;
@@ -72,7 +72,6 @@ export interface TMDBDetail extends TMDBMovie {
   videos?: { results: { key: string; type: string; site: string }[] };
   similar?: { results: TMDBMovie[] };
   recommendations?: { results: TMDBMovie[] };
-  external_ids?: { imdb_id?: string | null };
 }
 
 export interface TMDBPerson {
@@ -89,7 +88,7 @@ export interface TMDBPerson {
 async function fetchTMDB<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const query = new URLSearchParams({ tmdb: endpoint, ...params });
   const res = await fetch(`${RELAY}?${query}`, {
-    headers: { Authorization: `Bearer ${await movieAccessToken()}` },
+    headers: { Authorization: `Bearer ${await freshToken()}` },
   });
   if (!res.ok) throw new Error(`TMDB error: ${res.status}`);
   return res.json();
@@ -118,10 +117,10 @@ export const tmdb = {
     fetchTMDB<{ results: TMDBMovie[] }>('/discover/tv', params).then(r => r.results),
 
   movieDetail: (id: number) =>
-    fetchTMDB<TMDBDetail>(`/movie/${id}`, { append_to_response: 'credits,videos,similar,recommendations,external_ids' }),
+    fetchTMDB<TMDBDetail>(`/movie/${id}`, { append_to_response: 'credits,videos,similar,recommendations' }),
 
   tvDetail: (id: number) =>
-    fetchTMDB<TMDBDetail>(`/tv/${id}`, { append_to_response: 'credits,videos,similar,recommendations,external_ids' }),
+    fetchTMDB<TMDBDetail>(`/tv/${id}`, { append_to_response: 'credits,videos,similar,recommendations' }),
 
   person: (id: number) =>
     fetchTMDB<TMDBPerson>(`/person/${id}`, { append_to_response: 'combined_credits' }),

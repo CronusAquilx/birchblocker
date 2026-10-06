@@ -1,18 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Captions, Check, ChevronLeft, ChevronRight, Download, Expand, Maximize2, Minimize2, RefreshCw, Settings2 } from "lucide-react";
-import { DOWNLOAD_PROVIDERS, movieAccessToken, SERVER_CATEGORIES, STREAMING_SERVERS, type ServerCategory } from "@/lib/movies/tmdb";
-import { activeCaption, captionLanguageName, parseCaptionFile, type CaptionCue, type CaptionTrack } from "@/lib/movies/captions";
+import { ArrowLeft, ChevronLeft, ChevronRight, Download, Expand, Maximize2, Minimize2, RefreshCw, Settings2 } from "lucide-react";
+import { DOWNLOAD_PROVIDERS, SERVER_CATEGORIES, STREAMING_SERVERS, type ServerCategory } from "@/lib/movies/tmdb";
 import { useMovieDetail, useTVDetail } from "@/lib/movies/hooks";
 import { useWatchHistory } from "@/lib/movies/watch-history";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 
-type CaptionPrefs = { size: number; position: "top" | "bottom"; background: boolean };
-const DEFAULT_CAPTION_PREFS: CaptionPrefs = { size: 22, position: "bottom", background: true };
+const CAPTIONS = [
+  ["off", "Off"], ["en", "English"], ["es", "Spanish"], ["fr", "French"],
+  ["de", "German"], ["pt", "Portuguese"], ["ar", "Arabic"], ["hi", "Hindi"],
+  ["ja", "Japanese"], ["ko", "Korean"], ["zh", "Chinese"],
+] as const;
 
 export const Route = createFileRoute("/_authenticated/movies/watch/$type/$id")({
   head: () => ({ meta: [{ title: "Watch — BirchBlock Movies" }] }),
@@ -32,7 +32,7 @@ function Watch() {
   const isTV = type === "tv";
   const playerRef = useRef<HTMLDivElement>(null);
   const [school] = useState(() => localStorage.getItem("astra-watch-mode") === "school");
-  const [server, setServerRaw] = useState(() => { if (localStorage.getItem("astra-watch-mode") === "school") return "apiplayer"; const saved = localStorage.getItem("astra-movie-server"); return STREAMING_SERVERS.some((x) => x.id === saved) && saved ? saved : STREAMING_SERVERS[0]?.id ?? ""; });
+  const [server, setServerRaw] = useState(() => { if (localStorage.getItem("astra-watch-mode") === "school") return "apiplayer"; const saved = localStorage.getItem("astra-movie-server"); return STREAMING_SERVERS.some((x) => x.id === saved) ? saved! : STREAMING_SERVERS[0]?.id ?? ""; });
   const setServer = (v: string) => { if (!school) setServerRaw(v); };
   const [loaded, setLoaded] = useState(false);
   const triedRef = useRef<Set<string>>(new Set());
@@ -48,65 +48,12 @@ function Watch() {
   const [fakeFullscreen, setFakeFullscreen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [downloadsOpen, setDownloadsOpen] = useState(false);
-  const [caption, setCaption] = useState(() => localStorage.getItem("birchblock-caption-language") || "off");
-  const [captionTracks, setCaptionTracks] = useState<CaptionTrack[]>([]);
-  const [captionCues, setCaptionCues] = useState<CaptionCue[]>([]);
-  const [captionLoading, setCaptionLoading] = useState(false);
-  const [captionError, setCaptionError] = useState("");
-  const [captionPanel, setCaptionPanel] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [hasTimeSignal, setHasTimeSignal] = useState(false);
-  const [captionPrefs, setCaptionPrefs] = useState<CaptionPrefs>(() => {
-    try { return { ...DEFAULT_CAPTION_PREFS, ...JSON.parse(localStorage.getItem("birchblock-caption-style") || "{}") }; }
-    catch { return DEFAULT_CAPTION_PREFS; }
-  });
+  const [caption, setCaption] = useState(() => localStorage.getItem("astra-caption-language") || "off");
   const [category, setCategory] = useState<ServerCategory | "all">(() => (localStorage.getItem("astra-server-category") as ServerCategory | "all") || "new");
   const movie = useMovieDetail(isTV ? 0 : n);
   const tv = useTVDetail(isTV ? n : 0);
   const d = isTV ? tv.data : movie.data;
   const history = useWatchHistory();
-
-  useEffect(() => {
-    const imdbId = d?.external_ids?.imdb_id;
-    if (!imdbId || !ready) return;
-    let cancelled = false;
-    setCaptionLoading(true);
-    setCaptionError("");
-    const params = new URLSearchParams({ captions: imdbId, type });
-    if (isTV) { params.set("season", String(season)); params.set("episode", String(episode)); }
-    void movieAccessToken().then((token) => fetch(`/api/movies?${params}`, { headers: { Authorization: `Bearer ${token}` } }))
-      .then(async (response) => {
-        if (!response.ok) throw new Error("Caption search failed");
-        return response.json() as Promise<{ subtitles?: CaptionTrack[] }>;
-      })
-      .then(({ subtitles = [] }) => {
-        if (cancelled) return;
-        const unique = new Map<string, CaptionTrack>();
-        for (const track of subtitles) if (!unique.has(track.language)) unique.set(track.language, { ...track, label: captionLanguageName(track.language) });
-        const tracks = [...unique.values()].sort((a, b) => a.label.localeCompare(b.label));
-        setCaptionTracks(tracks);
-        if (caption !== "off" && !tracks.some((track) => track.language === caption)) setCaption("off");
-      })
-      .catch(() => { if (!cancelled) setCaptionError("Captions are unavailable for this title right now."); })
-      .finally(() => { if (!cancelled) setCaptionLoading(false); });
-    return () => { cancelled = true; };
-  }, [d?.external_ids?.imdb_id, episode, isTV, ready, season, type]);
-
-  useEffect(() => {
-    setCaptionCues([]);
-    if (caption === "off") return;
-    const track = captionTracks.find((item) => item.language === caption);
-    if (!track) return;
-    let cancelled = false;
-    setCaptionLoading(true);
-    void fetch(track.url).then(async (response) => {
-      if (!response.ok) throw new Error("Caption download failed");
-      return response.text();
-    }).then((text) => { if (!cancelled) setCaptionCues(parseCaptionFile(text)); })
-      .catch(() => { if (!cancelled) setCaptionError("This caption track could not be loaded."); })
-      .finally(() => { if (!cancelled) setCaptionLoading(false); });
-    return () => { cancelled = true; };
-  }, [caption, captionTracks]);
 
   // Pick up where the viewer left off when no exact spot was given.
   useEffect(() => {
@@ -136,11 +83,7 @@ function Watch() {
       let data = ev.data;
       if (typeof data === "string") { try { data = JSON.parse(data); } catch { return; } }
       const t = find(data);
-      if (t && t < 60 * 60 * 6) {
-        timeRef.current = t;
-        setCurrentTime(t);
-        setHasTimeSignal(true);
-      }
+      if (t && t < 60 * 60 * 6) timeRef.current = t;
     };
     window.addEventListener("message", onMsg);
     const save = () => { if (rowRef.current && timeRef.current > 5) void history.saveProgress(rowRef.current, timeRef.current); };
@@ -167,13 +110,9 @@ function Watch() {
 
   useEffect(() => {
     if (!school) localStorage.setItem("astra-movie-server", server);
-    localStorage.setItem("birchblock-caption-language", caption);
+    localStorage.setItem("astra-caption-language", caption);
     localStorage.setItem("astra-server-category", category);
   }, [server, caption, category]);
-
-  useEffect(() => {
-    localStorage.setItem("birchblock-caption-style", JSON.stringify(captionPrefs));
-  }, [captionPrefs]);
 
   useEffect(() => {
     if (!fakeFullscreen) return;
@@ -187,7 +126,7 @@ function Watch() {
     };
   }, [fakeFullscreen]);
 
-  useEffect(() => { triedRef.current = new Set(); setCurrentTime(0); setHasTimeSignal(false); }, [n, season, episode, server]);
+  useEffect(() => { triedRef.current = new Set(); }, [n, season, episode]);
 
   // Auto-pick a new source when the current one doesn't load in time.
   useEffect(() => { setLoaded(false); triedRef.current.add(server); }, [server, season, episode, n]);
@@ -208,7 +147,6 @@ function Watch() {
   const baseUrl = s.url(n, type, isTV ? season : undefined, isTV ? episode : undefined);
   const directUrl = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}autoplay=1${caption !== "off" ? `&sub_lang=${caption}` : ""}${startAt ? `&startAt=${startAt}&progress=${startAt}&t=${startAt}&start=${startAt}` : ""}`;
   const embedUrl = directUrl;
-  const cue = caption === "off" ? undefined : activeCaption(captionCues, currentTime);
 
   const toggleFullscreen = useCallback(async () => {
     const player = playerRef.current;
@@ -241,30 +179,7 @@ function Watch() {
       <div className={cn("mx-auto px-3 py-3 sm:px-5", theater ? "max-w-none" : "max-w-7xl")}>
         <div ref={playerRef} className={cn("relative overflow-hidden border border-border bg-card shadow-2xl", theater ? "h-[76dvh]" : "aspect-video", fakeFullscreen && "fixed inset-0 z-50 h-dvh w-screen border-0", fullscreen ? "h-screen w-screen border-0" : "rounded-md")}>
           {!ready ? <div className="grid size-full place-items-center text-sm text-muted-foreground">Finding where you left off…</div> : <iframe key={`${server}-${season}-${episode}-${caption}`} src={embedUrl} title={`${d?.title || d?.name || "Movie"} player`} onLoad={() => setLoaded(true)} onError={tryNextServer} className="size-full border-0" allowFullScreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture" />}
-          {cue && hasTimeSignal && <div className={cn("pointer-events-none absolute inset-x-3 z-20 flex justify-center text-center", captionPrefs.position === "top" ? "top-[10%]" : "bottom-[12%]")}>
-            <span className={cn("max-w-[92%] whitespace-pre-line px-2 py-1 font-medium leading-snug text-white [text-shadow:0_1px_3px_rgb(0_0_0/0.95)]", captionPrefs.background && "rounded bg-black/80")} style={{ fontSize: `${captionPrefs.size}px` }}>{cue.text}</span>
-          </div>}
-          <div className="absolute right-2 top-2 z-30 flex gap-2 sm:right-3 sm:top-3">
-            <Button type="button" variant={caption !== "off" ? "default" : "secondary"} size="icon" onClick={() => setCaptionPanel((value) => !value)} aria-label="Caption settings"><Captions /></Button>
-            {(fakeFullscreen || fullscreen) && <Button type="button" variant="secondary" size="icon" onClick={toggleFullscreen} aria-label="Exit fullscreen"><Minimize2 /></Button>}
-          </div>
-          {captionPanel && <div className="absolute right-2 top-14 z-40 max-h-[calc(100%-4rem)] w-[min(22rem,calc(100%-1rem))] overflow-y-auto rounded-md border border-border bg-popover/95 p-3 text-popover-foreground shadow-2xl backdrop-blur sm:right-3 sm:top-16">
-            <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Captions</h2><span className="text-xs text-muted-foreground">{captionTracks.length} languages</span></div>
-            <Select value={caption} onValueChange={setCaption} disabled={captionLoading && captionTracks.length === 0}>
-              <SelectTrigger className="mt-3"><SelectValue placeholder={captionLoading ? "Finding captions…" : "Select language"} /></SelectTrigger>
-              <SelectContent><SelectItem value="off">Off</SelectItem>{captionTracks.map((track) => <SelectItem key={track.language} value={track.language}>{track.label}</SelectItem>)}</SelectContent>
-            </Select>
-            {captionError && <p className="mt-2 text-xs text-destructive">{captionError}</p>}
-            {caption !== "off" && !hasTimeSignal && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">This server has not shared playback timing yet. Its built-in caption button may work, or try another server.</p>}
-            <div className="mt-4 space-y-4 border-t border-border pt-4">
-              <label className="block space-y-2 text-xs"><span className="flex justify-between"><span>Text size</span><span className="text-muted-foreground">{captionPrefs.size}px</span></span><Slider min={14} max={40} step={2} value={[captionPrefs.size]} onValueChange={(value) => setCaptionPrefs((prefs) => ({ ...prefs, size: value[0] ?? prefs.size }))} /></label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button type="button" variant={captionPrefs.position === "top" ? "default" : "secondary"} size="sm" onClick={() => setCaptionPrefs((prefs) => ({ ...prefs, position: "top" }))}>{captionPrefs.position === "top" && <Check />}Top</Button>
-                <Button type="button" variant={captionPrefs.position === "bottom" ? "default" : "secondary"} size="sm" onClick={() => setCaptionPrefs((prefs) => ({ ...prefs, position: "bottom" }))}>{captionPrefs.position === "bottom" && <Check />}Bottom</Button>
-              </div>
-              <label className="flex items-center justify-between text-sm"><span>Caption background</span><Switch checked={captionPrefs.background} onCheckedChange={(background) => setCaptionPrefs((prefs) => ({ ...prefs, background }))} /></label>
-            </div>
-          </div>}
+          {fakeFullscreen && <Button type="button" variant="secondary" size="icon" onClick={() => setFakeFullscreen(false)} aria-label="Exit fullscreen" className="absolute right-3 top-3 z-10 rounded-full"><Minimize2 /></Button>}
         </div>
         {!fullscreen && !fakeFullscreen && <>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -286,7 +201,9 @@ function Watch() {
           {settingsOpen && <section className="mt-3 border-y border-border py-4">
             <h2 className="label-mono">Player settings</h2>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5 text-sm"><span className="text-muted-foreground">Captions</span><Button type="button" variant="outline" onClick={() => setCaptionPanel(true)} className="w-full justify-start"><Captions />{caption === "off" ? "Off" : captionLanguageName(caption)}</Button></div>
+              <label className="space-y-1.5 text-sm"><span className="text-muted-foreground">Caption language</span>
+                <Select value={caption} onValueChange={setCaption}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{CAPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select>
+              </label>
               <div className="space-y-1.5"><span className="text-sm text-muted-foreground">Playback</span><p className="text-xs leading-relaxed text-muted-foreground">Speed, audio tracks, and quality remain available inside supported players.</p></div>
             </div>
           </section>}
