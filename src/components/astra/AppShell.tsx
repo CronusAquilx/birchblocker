@@ -1,4 +1,5 @@
 import { Link, useNavigate, useParams, useRouter, useRouterState } from "@tanstack/react-router";
+import { RoomFollower } from "@/components/RoomFollower";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Bot, Brain, Film, Gamepad2, Globe, AudioLines, Home, Lock, LogOut, Maximize, Music, Shield, Menu, MessageSquare, Plus, RotateCw, Search, Settings, Trash2 } from "lucide-react";
@@ -88,7 +89,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Sheet>
         <main className="flex min-w-0 flex-1 flex-col">
           {launcher && <TopBar />}
-          <div className="min-h-0 flex-1">{children}</div>
+          <div className="min-h-0 flex-1"><RoomFollower />{children}</div>
         </main>
       </div>
       <CommandMenu open={cmdOpen} onOpenChange={setCmdOpen} />
