@@ -7,6 +7,7 @@ import ContentRow from "@/components/movies/ContentRow";
 import ChannelsRow from "@/components/movies/ChannelsRow";
 import FreeContentRow from "@/components/movies/FreeContentRow";
 import MovieCard from "@/components/movies/MovieCard";
+import { RoomButton } from "@/components/RoomButton";
 import { useAnime, useByGenre, useKDrama, useNowPlaying, usePopular, useSearch, useTopRatedMovies, useTopRatedTV, useTrending } from "@/lib/movies/hooks";
 import { GENRE_LIST, YOUTUBE_MOVIES } from "@/lib/movies/tmdb";
 import { useWatchHistory } from "@/lib/movies/watch-history";
@@ -104,6 +105,7 @@ function Movies() {
         </div>
       </header>
       <div className="flex items-center gap-2 px-4 pt-3 pb-1 sm:px-6">
+        <RoomButton kind="movies" />
         <Dialog open={genresOpen} onOpenChange={setGenresOpen}>
           <DialogTrigger asChild>
             <button className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${genre ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-accent"}`}>

@@ -5,6 +5,8 @@ import { DOWNLOAD_PROVIDERS, SERVER_CATEGORIES, STREAMING_SERVERS, type ServerCa
 import { useMovieDetail, useTVDetail } from "@/lib/movies/hooks";
 import { useWatchHistory } from "@/lib/movies/watch-history";
 import { cn } from "@/lib/utils";
+import { RoomButton } from "@/components/RoomButton";
+import { myRoomId, setRoomState, useRoom } from "@/lib/rooms";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -23,8 +25,14 @@ export const Route = createFileRoute("/_authenticated/movies/watch/$type/$id")({
     if (s) out.s = s; if (e) out.e = e; if (t) out.t = t;
     return out;
   },
-  component: Watch,
+  component: WatchRoute,
 });
+
+// Remount the player when the title changes so season/episode state starts fresh.
+function WatchRoute() {
+  const { type, id } = Route.useParams();
+  return <Watch key={`${type}-${id}`} />;
+}
 
 function Watch() {
   const { type, id } = Route.useParams();
@@ -54,6 +62,26 @@ function Watch() {
   const tv = useTVDetail(isTV ? n : 0);
   const d = isTV ? tv.data : movie.data;
   const history = useWatchHistory();
+  const room = useRoom("movies");
+
+  // Watch party: share what's playing, and follow changes others make.
+  useEffect(() => {
+    if (!room || room.status !== "live" || !ready) return;
+    const m = room.state?.movie;
+    if (m && m.type === type && m.id === n && (m.s ?? 0) === (isTV ? season : 0) && (m.e ?? 0) === (isTV ? episode : 0) && m.server === server) return;
+    setRoomState("movies", { movie: { type, id: n, ...(isTV ? { s: season, e: episode } : {}), server } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.status, season, episode, server, ready]);
+  useEffect(() => {
+    const st = room?.state;
+    if (!st?.movie || st.by === myRoomId()) return;
+    const m = st.movie;
+    if (m.type !== type || m.id !== n) return;
+    if (isTV && m.s && m.s !== season) { setStartAt(0); setSeason(m.s); }
+    if (isTV && m.e && m.e !== episode) { setStartAt(0); setEpisode(m.e); }
+    if (m.server && m.server !== server && STREAMING_SERVERS.some((x) => x.id === m.server)) setServerRaw(m.server);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.state?.v]);
 
   // Pick up where the viewer left off when no exact spot was given.
   useEffect(() => {
@@ -174,7 +202,7 @@ function Watch() {
       <header className="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-border px-3 sm:px-5">
         <Button asChild variant="ghost" size="icon"><Link to="/movies/title/$type/$id" params={{ type, id }} aria-label="Back to details"><ArrowLeft /></Link></Button>
         <h1 className="min-w-0 truncate text-sm font-medium sm:text-base">{d?.title || d?.name || "Loading…"}{isTV ? ` · S${season} E${episode}` : ""}</h1>
-        <span className="hidden shrink-0 text-xs text-muted-foreground sm:block">Playing on <strong className="text-foreground">{s.name}</strong></span>
+        <div className="flex shrink-0 items-center gap-2"><span className="hidden text-xs text-muted-foreground sm:block">Playing on <strong className="text-foreground">{s.name}</strong></span><RoomButton kind="movies" /></div>
       </header>
       <div className={cn("mx-auto px-3 py-3 sm:px-5", theater ? "max-w-none" : "max-w-7xl")}>
         <div ref={playerRef} className={cn("relative overflow-hidden border border-border bg-card shadow-2xl", theater ? "h-[76dvh]" : "aspect-video", fakeFullscreen && "fixed inset-0 z-50 h-dvh w-screen border-0", fullscreen ? "h-screen w-screen border-0" : "rounded-md")}>
