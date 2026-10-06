@@ -6,6 +6,8 @@ import { openProxied } from "@/lib/astra/proxy";
 import { supabase } from "@/integrations/supabase/client";
 import { MobileMenuButton } from "@/components/astra/AppShell";
 import { cn } from "@/lib/utils";
+import { RoomButton } from "@/components/RoomButton";
+import { getRoom, myRoomId, setRoomState, useRoom } from "@/lib/rooms";
 
 export const Route = createFileRoute("/_authenticated/music")({
   head: () => ({ meta: [{ title: "Music — BirchBlock" }, { name: "description", content: "Search songs, albums and artists in BirchBlock." }] }),
@@ -80,7 +82,31 @@ function Music() {
   const openArtist = (id: string) => go(async () => ({ kind: "artist", data: await api<any>({ op: "artist", id }) }));
   const back = () => { const prev = stack.at(-1); if (prev) { setView(prev); setStack((s) => s.slice(0, -1)); } };
 
-  async function play(list: Track[], i: number) {
+  const room = useRoom("music");
+  function play(list: Track[], i: number) {
+    if (getRoom("music")) setRoomState("music", { music: { queue: list.slice(0, 100), cur: i, server, paused: false, t: 0 } });
+    return playLocal(list, i);
+  }
+  // Follow what others in the listen party do.
+  const seenV = useRef(0);
+  useEffect(() => {
+    const st = room?.state;
+    if (!st?.music || st.v === seenV.current) return;
+    seenV.current = st.v;
+    if (st.by === myRoomId()) return;
+    const m = st.music;
+    const now = queue[cur];
+    if (!now || now.id !== m.queue[m.cur]?.id) { void playLocal(m.queue, m.cur).then(() => { if (m.paused) { audioRef.current?.pause(); setPaused(true); } }); return; }
+    const a = audioRef.current;
+    if (a?.src) {
+      if (Math.abs(a.currentTime - m.t) > 3) a.currentTime = m.t;
+      if (m.paused && !a.paused) { a.pause(); setPaused(true); }
+      if (!m.paused && a.paused) { void a.play(); setPaused(false); }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.state?.v]);
+
+  async function playLocal(list: Track[], i: number) {
     const t = list[i];
     if (!t) return;
     setQueue(list); setCur(i); setLyrics(null); setStatus("Finding song…"); setPaused(false);
@@ -112,7 +138,12 @@ function Music() {
 
   function togglePause() {
     const a = audioRef.current;
-    if (a?.src && !a.ended) { if (a.paused) { void a.play(); setPaused(false); } else { a.pause(); setPaused(true); } return; }
+    if (a?.src && !a.ended) {
+      const willPause = !a.paused;
+      if (willPause) { a.pause(); setPaused(true); } else { void a.play(); setPaused(false); }
+      if (getRoom("music")) setRoomState("music", { music: { queue: queue.slice(0, 100), cur, server, paused: willPause, t: a.currentTime } });
+      return;
+    }
     setCur(-1); if (frameRef.current) frameRef.current.src = "about:blank";
   }
 
@@ -177,6 +208,7 @@ function Music() {
           <Search className="size-4 text-muted-foreground" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search songs, albums, artists" className="w-full bg-transparent text-sm outline-none" />
         </form>
+        <RoomButton kind="music" />
         <select value={server} onChange={(e) => pickServer(e.target.value as Server)} aria-label="Music server" className="rounded-md border bg-card px-2 py-1.5 text-sm">
           {SERVERS.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
         </select>
