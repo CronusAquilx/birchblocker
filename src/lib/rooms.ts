@@ -7,9 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
  * everyone in it shares one state object and anyone can change it (last write wins).
  */
 export type RoomKind = "movies" | "music";
-export type MovieState = { type: string; id: number; s?: number; e?: number; server?: string };
+export type MovieState = { type: string; id: number; s?: number; e?: number; server?: string; start?: { at: number; t: number } };
 export type MusicTrack = { id: string; title: string; artist: string; artistId: string; album: string; albumId: string; art: string; duration: number; preview?: string };
-export type MusicState = { queue: MusicTrack[]; cur: number; server: string; paused: boolean; t: number };
+export type MusicState = { queue: MusicTrack[]; cur: number; server: string; paused: boolean; t: number; at?: number };
 export type RoomState = { movie?: MovieState; music?: MusicState; v: number; by: string };
 export type Member = { id: string; name: string; host: boolean };
 export type Room = { kind: RoomKind; code: string; host: boolean; members: Member[]; state: RoomState | null; status: "joining" | "live" };
@@ -36,11 +36,25 @@ async function identity() {
   return me;
 }
 
+let clockOffset = 0;
+/** Current time on the shared server clock (ms). */
+export const serverNow = () => Date.now() + clockOffset;
+async function syncClock() {
+  let best = Infinity;
+  for (let i = 0; i < 3; i++) {
+    const t0 = Date.now();
+    const r = await fetch("/api/time", { cache: "no-store" }).then((x) => x.json()).catch(() => null) as { now: number } | null;
+    const t1 = Date.now();
+    if (r && t1 - t0 < best) { best = t1 - t0; clockOffset = r.now + (t1 - t0) / 2 - t1; }
+  }
+}
+
 const makeCode = () => Array.from({ length: 6 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]).join("");
 
 async function connect(kind: RoomKind, code: string, host: boolean): Promise<void> {
   await leaveRoom(kind);
   const who = await identity();
+  void syncClock();
   update(kind, { kind, code, host, members: [], state: null, status: "joining" });
   const ch = supabase.channel(`bb-room-${kind}-${code}`, { config: { presence: { key: who.id }, broadcast: { self: false } } });
   channels[kind] = ch;
