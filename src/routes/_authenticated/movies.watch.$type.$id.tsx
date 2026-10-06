@@ -6,7 +6,7 @@ import { useMovieDetail, useTVDetail } from "@/lib/movies/hooks";
 import { useWatchHistory } from "@/lib/movies/watch-history";
 import { cn } from "@/lib/utils";
 import { RoomButton } from "@/components/RoomButton";
-import { myRoomId, serverNow, setRoomState, useRoom } from "@/lib/rooms";
+import { myRoomId, setRoomState, useRoom } from "@/lib/rooms";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -69,7 +69,7 @@ function Watch() {
     if (!room || room.status !== "live" || !ready) return;
     const m = room.state?.movie;
     if (m && m.type === type && m.id === n && (m.s ?? 0) === (isTV ? season : 0) && (m.e ?? 0) === (isTV ? episode : 0) && m.server === server) return;
-    setRoomState("movies", { movie: { type, id: n, ...(isTV ? { s: season, e: episode } : {}), server } }); // new pick → everyone starts together again
+    setRoomState("movies", { movie: { type, id: n, ...(isTV ? { s: season, e: episode } : {}), server } });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.status, season, episode, server, ready]);
   useEffect(() => {
@@ -176,28 +176,6 @@ function Watch() {
   const directUrl = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}autoplay=1${caption !== "off" ? `&sub_lang=${caption}` : ""}${startAt ? `&startAt=${startAt}&progress=${startAt}&t=${startAt}&start=${startAt}` : ""}`;
   const embedUrl = directUrl;
 
-  // Watch party: everyone's player starts at the same instant from the same spot.
-  const inParty = room?.status === "live";
-  const start = inParty ? room?.state?.movie?.start : undefined;
-  const [now, setNow] = useState(() => serverNow());
-  useEffect(() => {
-    if (!start) return;
-    const id = setInterval(() => setNow(serverNow()), 200);
-    return () => clearInterval(id);
-  }, [start?.at]);
-  const waiting = inParty && (!start || now < start.at);
-  const partyAt = start ? Math.max(0, Math.floor(start.t + Math.max(0, now - start.at) / 1000)) : 0;
-  const [mountedAt, setMountedAt] = useState(0);
-  useEffect(() => { if (start && !waiting) setMountedAt(partyAt); /* freeze the start spot when the player mounts */ // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [start?.at, waiting]);
-  const startTogether = (from: number) => {
-    const m = room?.state?.movie ?? { type, id: n, ...(isTV ? { s: season, e: episode } : {}), server };
-    setRoomState("movies", { movie: { ...m, start: { at: serverNow() + 4000, t: Math.max(0, Math.floor(from)) } } });
-  };
-  const playerUrl = inParty
-    ? `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}autoplay=1${caption !== "off" ? `&sub_lang=${caption}` : ""}${mountedAt ? `&startAt=${mountedAt}&progress=${mountedAt}&t=${mountedAt}&start=${mountedAt}` : ""}`
-    : embedUrl;
-
   const toggleFullscreen = useCallback(async () => {
     const player = playerRef.current;
     if (!player) return;
@@ -228,25 +206,13 @@ function Watch() {
       </header>
       <div className={cn("mx-auto px-3 py-3 sm:px-5", theater ? "max-w-none" : "max-w-7xl")}>
         <div ref={playerRef} className={cn("relative overflow-hidden border border-border bg-card shadow-2xl", theater ? "h-[76dvh]" : "aspect-video", fakeFullscreen && "fixed inset-0 z-50 h-dvh w-screen border-0", fullscreen ? "h-screen w-screen border-0" : "rounded-md")}>
-          {waiting ? (
-            <div className="grid size-full place-items-center p-4 text-center">
-              {start ? (
-                <div><p className="font-display text-6xl tabular-nums">{Math.max(1, Math.ceil((start.at - now) / 1000))}</p><p className="mt-2 text-sm text-muted-foreground">Starting together…</p></div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">Watch party — press start when everyone's here.<br />Everyone's player begins at the same moment.</p>
-                  <Button onClick={() => startTogether(startAt)}>Start together</Button>
-                </div>
-              )}
-            </div>
-          ) : !ready ? <div className="grid size-full place-items-center text-sm text-muted-foreground">Finding where you left off…</div> : <iframe key={`${server}-${season}-${episode}-${caption}-${start?.at ?? 0}`} src={playerUrl} title={`${d?.title || d?.name || "Movie"} player`} onLoad={() => setLoaded(true)} onError={tryNextServer} className="size-full border-0" allowFullScreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture" />}
+          {!ready ? <div className="grid size-full place-items-center text-sm text-muted-foreground">Finding where you left off…</div> : <iframe key={`${server}-${season}-${episode}-${caption}`} src={embedUrl} title={`${d?.title || d?.name || "Movie"} player`} onLoad={() => setLoaded(true)} onError={tryNextServer} className="size-full border-0" allowFullScreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture" />}
           {fakeFullscreen && <Button type="button" variant="secondary" size="icon" onClick={() => setFakeFullscreen(false)} aria-label="Exit fullscreen" className="absolute right-3 top-3 z-10 rounded-full"><Minimize2 /></Button>}
         </div>
         {!fullscreen && !fakeFullscreen && <>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button type="button" variant={theater ? "default" : "secondary"} size="sm" onClick={() => setTheater((value) => !value)}><Expand />{theater ? "Exit theater" : "Theater"}</Button>
             <Button type="button" variant="secondary" size="sm" onClick={toggleFullscreen}><Maximize2 />Fullscreen</Button>
-            {inParty && start && !waiting && <Button type="button" variant="secondary" size="sm" onClick={() => startTogether(timeRef.current || partyAt)}><RefreshCw />Sync everyone to me</Button>}
             {isTV && <>
               <Button type="button" variant="secondary" size="sm" onClick={() => { setStartAt(0); setEpisode((value) => Math.max(1, value - 1)); }} disabled={episode === 1}><ChevronLeft />Previous</Button>
               <Button type="button" variant="secondary" size="sm" onClick={() => { setStartAt(0); setEpisode((value) => Math.min(epCount, value + 1)); }} disabled={episode === epCount}>Next<ChevronRight /></Button>
