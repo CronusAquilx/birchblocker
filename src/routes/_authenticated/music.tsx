@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MobileMenuButton } from "@/components/astra/AppShell";
 import { cn } from "@/lib/utils";
 import { RoomButton } from "@/components/RoomButton";
-import { getRoom, myRoomId, setRoomState, useRoom } from "@/lib/rooms";
+import { getRoom, myRoomId, serverNow, setRoomState, useRoom } from "@/lib/rooms";
 
 export const Route = createFileRoute("/_authenticated/music")({
   head: () => ({ meta: [{ title: "Music — BirchBlock" }, { name: "description", content: "Search songs, albums and artists in BirchBlock." }] }),
@@ -57,6 +57,7 @@ function Music() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [server, setServer] = useState<Server>("soundcloud");
   const [paused, setPaused] = useState(false);
+  const [needTap, setNeedTap] = useState(false);
   useEffect(() => { const v = localStorage.getItem("bb-music-server"); if (v && SERVERS.some((x) => x.id === v)) setServer(v as Server); }, []);
   const pickServer = (v: Server) => { localStorage.setItem("bb-music-server", v); setServer(v); };
   const track = cur >= 0 ? queue[cur] : undefined;
@@ -84,7 +85,7 @@ function Music() {
 
   const room = useRoom("music");
   function play(list: Track[], i: number) {
-    if (getRoom("music")) setRoomState("music", { music: { queue: list.slice(0, 100), cur: i, server, paused: false, t: 0 } });
+    if (getRoom("music")) setRoomState("music", { music: { queue: list.slice(0, 100), cur: i, server, paused: false, t: 0, at: serverNow() } });
     return playLocal(list, i);
   }
   // Follow what others in the listen party do.
@@ -96,10 +97,20 @@ function Music() {
     if (st.by === myRoomId()) return;
     const m = st.music;
     const now = queue[cur];
-    if (!now || now.id !== m.queue[m.cur]?.id) { void playLocal(m.queue, m.cur).then(() => { if (m.paused) { audioRef.current?.pause(); setPaused(true); } }); return; }
+    const target = () => m.t + (m.paused || !m.at ? 0 : Math.max(0, serverNow() - m.at) / 1000);
+    if (!now || now.id !== m.queue[m.cur]?.id) {
+      void playLocal(m.queue, m.cur).then(() => {
+        const a = audioRef.current;
+        if (!a) return;
+        if (m.paused) { a.pause(); setPaused(true); return; }
+        const seek = () => { a.currentTime = target(); };
+        if (a.readyState >= 1) seek(); else a.addEventListener("loadedmetadata", seek, { once: true });
+      });
+      return;
+    }
     const a = audioRef.current;
     if (a?.src) {
-      if (Math.abs(a.currentTime - m.t) > 3) a.currentTime = m.t;
+      if (Math.abs(a.currentTime - target()) > 0.5) a.currentTime = target();
       if (m.paused && !a.paused) { a.pause(); setPaused(true); }
       if (!m.paused && a.paused) { void a.play(); setPaused(false); }
     }
@@ -127,7 +138,7 @@ function Music() {
         const { url } = await api<{ url: string | null }>({ op: "resolve", server: sv, q: `${t.artist} ${t.title}`, preview: t.preview ?? "" });
         if (!url || !audio) continue;
         audio.src = `/api/music?op=audio&u=${encodeURIComponent(url)}&token=${encodeURIComponent(TOKEN)}`;
-        await audio.play();
+        await audio.play().catch((e) => { if (e?.name === "NotAllowedError") { setNeedTap(true); return; } throw e; });
         const name = SERVERS.find((x) => x.id === sv)!.name;
         setStatus(sv === server ? (sv === "deezer" ? "30-second preview" : "") : `Playing from ${name}${sv === "deezer" ? " (preview)" : ""}`);
         return;
@@ -141,7 +152,7 @@ function Music() {
     if (a?.src && !a.ended) {
       const willPause = !a.paused;
       if (willPause) { a.pause(); setPaused(true); } else { void a.play(); setPaused(false); }
-      if (getRoom("music")) setRoomState("music", { music: { queue: queue.slice(0, 100), cur, server, paused: willPause, t: a.currentTime } });
+      if (getRoom("music")) setRoomState("music", { music: { queue: queue.slice(0, 100), cur, server, paused: willPause, t: a.currentTime, at: serverNow() } });
       return;
     }
     setCur(-1); if (frameRef.current) frameRef.current.src = "about:blank";
@@ -254,6 +265,7 @@ function Music() {
             <div className="truncate text-xs text-muted-foreground">{status || track?.artist}</div>
           </div>
           <button onClick={() => play(queue, Math.max(0, cur - 1))} className="rounded-md p-2 hover:bg-accent" aria-label="Previous"><SkipBack className="size-4" /></button>
+          {needTap && <button onClick={() => { const a = audioRef.current; const m = getRoom("music")?.state?.music; if (a) { if (m && !m.paused && m.at) a.currentTime = m.t + Math.max(0, serverNow() - m.at) / 1000; void a.play(); } setNeedTap(false); setPaused(false); }} className="animate-pulse rounded-full bg-star px-3 py-1.5 text-xs font-medium text-star-foreground">Tap to listen</button>}
           <button onClick={togglePause} className="rounded-full bg-primary p-2 text-primary-foreground" aria-label={paused ? "Play" : "Pause"}>{paused ? <Play className="size-4" /> : <Pause className="size-4" />}</button>
           <button onClick={() => play(queue, Math.min(queue.length - 1, cur + 1))} className="rounded-md p-2 hover:bg-accent" aria-label="Next"><SkipForward className="size-4" /></button>
           <button onClick={showLyrics} className={cn("rounded-md p-2 hover:bg-accent", lyrics !== null && "bg-accent")} aria-label="Lyrics"><Mic2 className="size-4" /></button>
